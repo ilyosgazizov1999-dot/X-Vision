@@ -33,6 +33,7 @@ html,body{
   color:var(--white);
   font-family:var(--font-body);
   overflow:hidden;
+  font-size:19px;
 }
 
 /* ---------- background canvas layers ---------- */
@@ -68,7 +69,7 @@ canvas#particles{position:fixed; inset:0; z-index:1; pointer-events:none;}
 .slide{
   position:absolute; inset:0;
   display:flex; flex-direction:column; justify-content:center;
-  padding:6vh 7vw;
+  padding:6vh 7vw 13vh 7vw;
   opacity:0; visibility:hidden;
   transform:scale(0.985);
   filter:blur(6px);
@@ -89,17 +90,17 @@ canvas#particles{position:fixed; inset:0; z-index:1; pointer-events:none;}
 .slide.active .r8{transition-delay:.78s;}
 
 .eyebrow{
-  font-family:var(--font-body); font-size:0.75rem; letter-spacing:0.22em; text-transform:uppercase;
+  font-family:var(--font-body); font-size:0.92rem; letter-spacing:0.2em; text-transform:uppercase;
   color:var(--mint); opacity:0.75; margin-bottom:14px; font-weight:500;
 }
 h1.headline{
   font-family:var(--font-display); font-weight:800;
-  font-size:clamp(1.9rem, 3.1vw, 2.9rem);
+  font-size:clamp(2.2rem, 3.6vw, 3.3rem);
   line-height:1.18; color:var(--white); max-width:900px;
   letter-spacing:-0.01em;
 }
 .subhead{
-  font-family:var(--font-body); font-weight:400; font-size:1.05rem;
+  font-family:var(--font-body); font-weight:400; font-size:1.22rem;
   color:rgba(245,251,248,0.72); margin-top:16px; max-width:640px; line-height:1.6;
 }
 
@@ -146,7 +147,7 @@ h1.headline{
   cursor:pointer; transition:all .25s ease; backdrop-filter:blur(10px);
 }
 .arrow-btn:hover{ background:rgba(79,209,197,0.14); transform:scale(1.08); box-shadow:0 0 18px rgba(79,209,197,0.3);}
-.slide-counter{ font-size:0.8rem; color:rgba(245,251,248,0.5); letter-spacing:0.08em; min-width:52px; text-align:center;}
+.slide-counter{ font-size:0.95rem; color:rgba(245,251,248,0.5); letter-spacing:0.08em; min-width:52px; text-align:center;}
 
 /* utility */
 .row{display:flex; gap:4vw; align-items:center; width:100%;}
@@ -155,7 +156,7 @@ h1.headline{
   display:inline-flex; align-items:center; gap:8px;
   padding:6px 14px; border-radius:999px;
   border:1px solid var(--glass-border); background:var(--glass);
-  font-size:0.78rem; color:var(--mint); letter-spacing:0.04em;
+  font-size:0.92rem; color:var(--mint); letter-spacing:0.04em;
 }
 .decree-box{
   border-left:2px solid var(--turquoise);
@@ -164,7 +165,7 @@ h1.headline{
 }
 .decree-box b{color:var(--white); font-weight:600;}
 .big-stat{
-  font-family:var(--font-display); font-weight:800; font-size:5.5rem;
+  font-family:var(--font-display); font-weight:800; font-size:6rem;
   background:linear-gradient(135deg,var(--white),var(--turquoise));
   -webkit-background-clip:text; background-clip:text; color:transparent;
   line-height:1;
@@ -238,6 +239,51 @@ svg.connectors line, svg.connectors path{
 .ai-diagram .ai-node:hover circle{ fill:#4FD1C5; filter:drop-shadow(0 0 6px rgba(79,209,197,0.8)); }
 .ai-diagram .ai-node:hover text{ fill:#F5FBF8; }
 
+/* gentle floating + glow animation for content cards across slides 1-5 */
+/* movement uses only transform (GPU-composited, smooth); glow is a separate
+   pseudo-layer animating opacity only — animating box-shadow directly every
+   frame is what caused the stutter before. */
+@keyframes floatCard{
+  0%,100%{ transform:translateY(0); }
+  50%{ transform:translateY(-6px); }
+}
+@keyframes floatGlow{
+  0%,100%{ opacity:0; }
+  50%{ opacity:1; }
+}
+.float-card{
+  position:relative;
+  animation:floatCard 7s ease-in-out infinite;
+  will-change:transform;
+  backface-visibility:hidden;
+}
+.float-card::after{
+  content:"";
+  position:absolute; inset:0;
+  border-radius:inherit;
+  box-shadow:0 0 0 1px rgba(149,213,178,0.22), 0 0 24px rgba(79,209,197,0.18);
+  opacity:0;
+  animation:floatGlow 7s ease-in-out infinite;
+  pointer-events:none;
+}
+.float-card:hover{ animation-play-state:paused; }
+.float-card:hover::after{ animation-play-state:paused; }
+.float-card:nth-of-type(1),.float-card:nth-of-type(1)::after{ animation-delay:0s; }
+.float-card:nth-of-type(2),.float-card:nth-of-type(2)::after{ animation-delay:0.7s; }
+.float-card:nth-of-type(3),.float-card:nth-of-type(3)::after{ animation-delay:1.4s; }
+.float-card:nth-of-type(4),.float-card:nth-of-type(4)::after{ animation-delay:2.1s; }
+.float-card:nth-of-type(5),.float-card:nth-of-type(5)::after{ animation-delay:2.8s; }
+
+/* gentle glow pulse for emblem images */
+@keyframes emblemGlow{
+  0%,100%{ filter:drop-shadow(0 0 0px rgba(79,209,197,0)); }
+  50%{ filter:drop-shadow(0 0 16px rgba(79,209,197,0.4)); }
+}
+.emblem-glow{ animation:emblemGlow 6s ease-in-out infinite; }
+
+.tag{ transition:all .3s ease; }
+.tag:hover{ background:rgba(79,209,197,0.16); border-color:rgba(79,209,197,0.4); transform:translateY(-2px); box-shadow:0 0 14px rgba(79,209,197,0.25); }
+
 /* language toggle */
 .lang-toggle{
   position:fixed; top:28px; right:34px; z-index:10;
@@ -271,15 +317,15 @@ svg.connectors line, svg.connectors path{
 <section class="slide" data-index="0">
   <div class="row" style="align-items:center;">
     <div class="col reveal r1" style="max-width:70%;">
-      <div class="eyebrow reveal r2 i18n" data-en="State Customs Committee of the Republic of Uzbekistan">Государственный таможенный комитет Республики Узбекистан</div>
+      <div class="eyebrow reveal r2 i18n" data-en="Customs Committee of the Republic of Uzbekistan">Таможенный комитет Республики Узбекистан</div>
       <h1 class="headline reveal r3 i18n" data-en="Artificial Intelligence in the National Customs Risk Management System">Искусственный интеллект в национальной системе управления рисками таможенных органов</h1>
       <p class="subhead reveal r4 i18n" data-en="Using AI for X-ray image analysis of railway transport">Использование AI при анализе рентгеновских изображений железнодорожного транспорта</p>
     </div>
-     <img src="gtk_image2.png" alt="Герб ГТК" style="width:50%;height:50%;object-fit:contain;">
+     <img src="gtk_image2.png" alt="Герб ТК" class="emblem-glow" style="width:50%;height:50%;object-fit:contain;">
   </div>
-  <div class="reveal r6" style="position:absolute; right:7vw; bottom:6vh; text-align:right; max-width:360px;">
-    <div class="i18n" data-en="Ilyas Ilmirovich Gazizov" style="font-family:var(--font-display); font-weight:700; font-size:1.05rem;">Ильяс Ильмирович Газизов</div>
-    <div style="color:rgba(245,251,248,0.6); font-size:0.9rem; margin-top:4px; line-height:1.5;">
+  <div class="reveal r6" style="position:absolute; right:7vw; bottom:14vh; text-align:right; max-width:360px;">
+    <div class="i18n" data-en="Ilyas Ilmirovich Gazizov" style="font-family:var(--font-display); font-weight:700; font-size:1.2rem;">Ильяс Ильмирович Газизов</div>
+    <div style="color:rgba(245,251,248,0.6); font-size:1.05rem; margin-top:4px; line-height:1.5;">
       <span class="i18n" data-en="Chief Inspector">Главный инспектор</span><br>
       <span class="i18n" data-en="Targeting and Risk Monitoring Department">Управление таргетирования </span><br>
       <span class="i18n" >и мониторинга рисков</span><br>
@@ -288,73 +334,53 @@ svg.connectors line, svg.connectors path{
 </section>
 
 <!-- SLIDE 2 : ROLE OF AI -->
-<section class="slide" data-index="1">
+<section class="slide" data-index="1" style="justify-content:flex-start; padding-top:8vh;">
   <div class="eyebrow reveal r1 i18n" data-en="Strategic Context">Стратегический контекст</div>
-  <h1 class="headline reveal r2 i18n" data-en="The Role of Artificial Intelligence in Risk Management" style="font-size:clamp(1.6rem,2.4vw,2.2rem);">Роль искусственного интеллекта в системе управления рисками</h1>
+  <h1 class="headline reveal r2 i18n" data-en="The Role of Artificial Intelligence in Risk Management" style="font-size:clamp(1.9rem,2.8vw,2.6rem);">Роль искусственного интеллекта в системе управления рисками</h1>
 
-  <div class="row" style="margin-top:40px; align-items:flex-start;">
+  <div class="row" style="margin-top:20px; align-items:flex-start;">
     <div class="col reveal r3" style="max-width:46%;">
-      <p class="i18n" data-en="The application of artificial intelligence technologies in customs authorities is one of the most dynamically developing areas of digital transformation, improving control efficiency, decision objectivity, and reducing corruption risks." style="color:rgba(245,251,248,0.78); line-height:1.75; font-size:0.98rem;">
+      <p class="i18n" data-en="The application of artificial intelligence technologies in customs authorities is one of the most dynamically developing areas of digital transformation, improving control efficiency, decision objectivity, and reducing corruption risks." style="color:rgba(245,251,248,0.78); line-height:1.5; font-size:1.15rem; margin-bottom:4px;">
         Применение технологий искусственного интеллекта в таможенных органах — одно из наиболее динамично развивающихся направлений цифровой трансформации, повышающее эффективность контроля, объективность решений и снижающее коррупционные риски.
       </p>
-      <div class="decree-box reveal r4">
-        <b class="i18n" data-en="Decree of the President of the Republic of Uzbekistan No. PF-57">Указ Президента Республики Узбекистан № ПФ-57</b><br>
+      <div class="decree-box float-card" style="margin:14px 0;">
+        <b class="i18n" data-en="Decree of the President of the Republic of Uzbekistan No. PD-57">Указ Президента Республики Узбекистан № УП-57</b><br>
         <span class="i18n" data-en="dated March 25, 2025">от 25 марта 2025 года</span>
       </div>
-      <p class="i18n" data-en="The main goal is to double the efficiency of the risk management system by 2030 through the application of artificial intelligence elements." style="color:rgba(245,251,248,0.6); font-size:0.92rem; line-height:1.6;">Основная цель — к 2030 году повысить эффективность системы управления рисками за счёт применения элементов искусственного интеллекта.</p>
+      <p class="i18n" data-en="The main goal is to double the efficiency of the risk management system by 2030 through the application of artificial intelligence elements." style="color:rgba(245,251,248,0.6); font-size:1.05rem; line-height:1.4; margin-top:10px;">Основная цель — к 2030 году повысить эффективность системы управления рисками за счёт применения элементов искусственного интеллекта.</p>
 
-      <div class="glass reveal r5" style="margin-top:26px; padding:20px 26px; display:inline-flex; align-items:baseline; gap:16px;">
+      <div class="glass float-card" style="margin-top:16px; padding:16px 24px; display:inline-flex; align-items:center; gap:16px;">
         <div class="big-stat">2×</div>
-        <div class="i18n" data-en="growth in risk management system efficiency by 2030" style="font-size:0.85rem; color:rgba(245,251,248,0.65); max-width:160px;">рост эффективности системы управления рисками к 2030 году</div>
+        <div class="i18n" data-en="growth in risk management system efficiency by 2030" style="font-size:1rem; color:rgba(245,251,248,0.65); max-width:230px;">рост эффективности системы управления рисками к 2030 году</div>
       </div>
     </div>
 
-    <div class="col reveal r6" style="display:flex; justify-content:center;">
-      <svg width="440" height="380" viewBox="0 0 440 380" class="ai-diagram">
-        <g stroke="#2D6A4F" stroke-width="1.2" opacity="0.55">
-          <line x1="220" y1="190" x2="80" y2="70"/>
-          <line x1="220" y1="190" x2="360" y2="70"/>
-          <line x1="220" y1="190" x2="60" y2="190"/>
-          <line x1="220" y1="190" x2="380" y2="190"/>
-          <line x1="220" y1="190" x2="80" y2="310"/>
-          <line x1="220" y1="190" x2="360" y2="310"/>
-          <line x1="220" y1="190" x2="220" y2="40"/>
-        </g>
+    <div class="col reveal r6" style="max-width:50%;">
+      <div class="i18n" data-en="5 priority AI modules" style="font-size:0.8rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--mint); margin-bottom:6px;">5 приоритетных модулей ИИ</div>
+      <div class="i18n" data-en="Committee Order No. 85 dated 17.09.2025" style="font-size:0.85rem; color:rgba(245,251,248,0.5); margin-bottom:18px;">Приказ Комитета № 85 от 17.09.2025</div>
 
-        <!-- travelling light pulses along each spoke -->
-        <g fill="#B7F0E1">
-          <circle r="2.6"><animateMotion dur="2.6s" begin="0s" repeatCount="indefinite" path="M220,190 L80,70"/></circle>
-          <circle r="2.6"><animateMotion dur="3.1s" begin="0.3s" repeatCount="indefinite" path="M220,190 L360,70"/></circle>
-          <circle r="2.6"><animateMotion dur="2.8s" begin="0.6s" repeatCount="indefinite" path="M220,190 L60,190"/></circle>
-          <circle r="2.6"><animateMotion dur="3.4s" begin="0.9s" repeatCount="indefinite" path="M220,190 L380,190"/></circle>
-          <circle r="2.6"><animateMotion dur="3s" begin="1.2s" repeatCount="indefinite" path="M220,190 L80,310"/></circle>
-          <circle r="2.6"><animateMotion dur="2.7s" begin="1.5s" repeatCount="indefinite" path="M220,190 L360,310"/></circle>
-          <circle r="2.6"><animateMotion dur="3.2s" begin="1.8s" repeatCount="indefinite" path="M220,190 L220,40"/></circle>
-        </g>
-
-        <!-- slow rotating outer ring for a "system" feel -->
-        <circle cx="220" cy="190" r="72" fill="none" stroke="#4FD1C5" stroke-width="1" stroke-dasharray="2 8" opacity="0.3">
-          <animateTransform attributeName="transform" type="rotate" from="0 220 190" to="360 220 190" dur="40s" repeatCount="indefinite"/>
-        </circle>
-
-        <!-- pulsing central node -->
-        <circle cx="220" cy="190" r="46" fill="rgba(79,209,197,0.10)" stroke="#4FD1C5" stroke-width="1.6">
-          <animate attributeName="r" values="46;50;46" dur="4s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" values="1;0.75;1" dur="4s" repeatCount="indefinite"/>
-        </circle>
-        <text x="220" y="185" text-anchor="middle" fill="#F5FBF8" font-family="Manrope" font-size="12" font-weight="700">Artificial</text>
-        <text x="220" y="200" text-anchor="middle" fill="#F5FBF8" font-family="Manrope" font-size="12" font-weight="700">Intelligence</text>
-
-        <g font-family="Inter" font-size="11.5" fill="#95D5B2">
-          <g class="ai-node"><circle cx="220" cy="40" r="5" fill="#40916C"/><text x="220" y="24" text-anchor="middle">Decision Support</text></g>
-          <g class="ai-node"><circle cx="80" cy="70" r="5" fill="#40916C"/><text x="80" y="52" text-anchor="middle">Risk Management</text></g>
-          <g class="ai-node"><circle cx="360" cy="70" r="5" fill="#40916C"/><text x="360" y="52" text-anchor="middle">Customs</text></g>
-          <g class="ai-node"><circle cx="60" cy="190" r="5" fill="#40916C"/><text x="60" y="212" text-anchor="middle">Big Data</text></g>
-          <g class="ai-node"><circle cx="380" cy="190" r="5" fill="#40916C"/><text x="380" y="212" text-anchor="middle">Analytics</text></g>
-          <g class="ai-node"><circle cx="80" cy="310" r="5" fill="#40916C"/><text x="80" y="330" text-anchor="middle">Inspection</text></g>
-          <g class="ai-node"><circle cx="360" cy="310" r="5" fill="#40916C"/><text x="360" y="330" text-anchor="middle">Automation</text></g>
-        </g>
-      </svg>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;">
+          <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">01</span>
+          <span class="i18n" data-en="AI module for TN VED (HS) code identification">Модуль ИИ по определению кода ТН ВЭД</span>
+        </div>
+        <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;">
+          <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">02</span>
+          <span class="i18n" data-en="AI module for X-ray image analysis">Модуль анализа рентген-изображений с помощью ИИ</span>
+        </div>
+        <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;">
+          <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">03</span>
+          <span class="i18n" data-en="AI module for document analysis (OCR)">Модуль ИИ по анализу документов (OCR)</span>
+        </div>
+        <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;">
+          <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">04</span>
+          <span class="i18n" data-en="AI module — Customs Advisor chatbot">Модуль ИИ чат-бота «Таможенный консультант»</span>
+        </div>
+        <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;">
+          <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">05</span>
+          <span class="i18n" data-en="Customs value module">Модуль таможенной стоимости</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -362,27 +388,27 @@ svg.connectors line, svg.connectors path{
 <!-- SLIDE 3 : XRAY PROCESS -->
 <section class="slide" data-index="2">
   <div class="eyebrow reveal r1 i18n" data-en="Intelligent X-ray Image Analysis System">Интеллектуальная система анализа рентгеновских изображений </div>
-  <h1 class="headline reveal r2" style="font-size:clamp(1.6rem,2.4vw,2.2rem);">X-Vision AI</h1>
+  <h1 class="headline reveal r2" style="font-size:clamp(1.9rem,2.8vw,2.6rem);">X-Vision AI</h1>
 
   <div class="row" style="margin-top:34px; align-items:center;">
     <div class="col reveal r3" style="max-width:44%; display:flex; flex-direction:column; gap:14px;">
-      <div class="glass" style="padding:14px 20px; display:flex; gap:14px; align-items:center;">
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center; cursor:pointer;" onclick="openLightbox(1)">
         <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">01</span>
         <span class="i18n" data-en="Wagon type identification">Определение типа вагона</span>
       </div>
-      <div class="glass" style="padding:14px 20px; display:flex; gap:14px; align-items:center;">
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center; cursor:pointer;" onclick="openLightbox(2)">
         <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">02</span>
         <span class="i18n" data-en="Structure segmentation">Сегментация конструкции</span>
       </div>
-      <div class="glass" style="padding:14px 20px; display:flex; gap:14px; align-items:center;">
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center; cursor:pointer;" onclick="openLightbox(3)">
         <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">03</span>
         <span class="i18n" data-en="Hidden anomaly detection">Поиск скрытых аномалий</span>
       </div>
-      <div class="glass" style="padding:14px 20px; display:flex; gap:14px; align-items:center;">
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center; cursor:pointer;" onclick="openLightbox(4)">
         <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">04</span>
         <span class="i18n" data-en="Cargo detection and classification">Обнаружение и классификация грузов</span>
       </div>
-      <div class="glass" style="padding:14px 20px; display:flex; gap:14px; align-items:center;">
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center; cursor:pointer;" onclick="openLightbox(6)">
         <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">05</span>
         <span class="i18n" data-en="Wagon load-status assessment">Оценка степени заполненности вагона</span>
       </div>
@@ -409,15 +435,15 @@ svg.connectors line, svg.connectors path{
 <!-- SLIDE 5 : ROADMAP -->
 <section class="slide" data-index="3">
   <div class="eyebrow reveal r1 i18n" data-en="Roadmap">Дорожная карта</div>
-  <h1 class="headline reveal r2 i18n" data-en="Priority Areas for Project Development" style="font-size:clamp(1.6rem,2.4vw,2.2rem);">Приоритетные направления развития проекта</h1>
+  <h1 class="headline reveal r2 i18n" data-en="Priority Areas for Project Development" style="font-size:clamp(1.9rem,2.8vw,2.6rem);">Приоритетные направления развития проекта</h1>
 
   <div class="row" style="margin-top:32px; align-items:flex-start;">
     <div class="col reveal r3" style="max-width:52%; display:flex; flex-direction:column; gap:12px;">
-      <div class="glass" style="padding:14px 20px; display:flex; gap:14px; align-items:center;"><span style="color:var(--turquoise); font-family:var(--font-display); font-weight:800;">1</span><span class="i18n" data-en="Integration with the national risk management system">Интеграция с национальной системой управления рисками</span></div>
-      <div class="glass" style="padding:14px 20px; display:flex; gap:14px; align-items:center;"><span style="color:var(--turquoise); font-family:var(--font-display); font-weight:800;">2</span><span class="i18n" data-en="Automatic detection of prohibited goods">Автоматическое выявление запрещённых товаров</span></div>
-      <div class="glass" style="padding:14px 20px; display:flex; gap:14px; align-items:center;"><span style="color:var(--turquoise); font-family:var(--font-display); font-weight:800;">3</span><span class="i18n" data-en="Cross-border comparison of transit images">Сравнение транзитных изображений между странами</span></div>
-      <div class="glass" style="padding:14px 20px; display:flex; gap:14px; align-items:center;"><span style="color:var(--turquoise); font-family:var(--font-display); font-weight:800;">4</span><span class="i18n" data-en="Use of large language models (LLM)">Использование больших языковых моделей (LLM)</span></div>
-      <div class="glass" style="padding:14px 20px; display:flex; gap:14px; align-items:center;"><span style="color:var(--turquoise); font-family:var(--font-display); font-weight:800;">5</span><span class="i18n" data-en="Building a unified intelligent X-ray image analysis platform">Создание единой интеллектуальной платформы анализа рентгеновских изображений</span></div>
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;"><span style="color:var(--turquoise); font-family:var(--font-display); font-weight:800;">1</span><span class="i18n" data-en="Integration with the national risk management system">Интеграция с национальной системой управления рисками</span></div>
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;"><span style="color:var(--turquoise); font-family:var(--font-display); font-weight:800;">2</span><span class="i18n" data-en="Automatic detection of prohibited goods">Автоматическое выявление запрещённых товаров</span></div>
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;"><span style="color:var(--turquoise); font-family:var(--font-display); font-weight:800;">3</span><span class="i18n" data-en="Cross-border comparison of transit images">Сравнение транзитных изображений между странами</span></div>
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;"><span style="color:var(--turquoise); font-family:var(--font-display); font-weight:800;">4</span><span class="i18n" data-en="Use of large language models (LLM)">Использование больших языковых моделей (LLM)</span></div>
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;"><span style="color:var(--turquoise); font-family:var(--font-display); font-weight:800;">5</span><span class="i18n" data-en="Building a unified intelligent X-ray image analysis platform">Создание единой интеллектуальной платформы анализа рентгеновских изображений</span></div>
     </div>
 
     <div class="col reveal r4" style="display:flex; justify-content:center;">
@@ -428,7 +454,7 @@ svg.connectors line, svg.connectors path{
   </div>
 
   <div class="reveal r5" style="margin-top:30px; display:flex; gap:12px; flex-wrap:wrap;">
-    <span class="i18n" data-en="The future of intelligent customs control:" style="color:rgba(245,251,248,0.55); font-size:0.9rem; margin-right:8px;">Будущее интеллектуального таможенного контроля:</span>
+    <span class="i18n" data-en="The future of intelligent customs control:" style="color:rgba(245,251,248,0.55); font-size:1.05rem; margin-right:8px;">Будущее интеллектуального таможенного контроля:</span>
     <span class="tag">AI</span><span class="tag">Big Data</span><span class="tag">Digital Customs</span><span class="tag">Risk Management</span>
   </div>
 </section>
@@ -437,12 +463,12 @@ svg.connectors line, svg.connectors path{
 <section class="slide" data-index="4">
   <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center;">
     <div class="reveal r1 breathe" style="width:300px;height:300px;border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid var(--glass-border); background:var(--glass); margin-bottom:36px; overflow:hidden;">
-      <img src="gtk_image2.png" alt="Герб ГТК" style="width:70%;height:70%;object-fit:contain;">
+      <img src="gtk_image2.png" alt="Герб ТК" class="emblem-glow" style="width:70%;height:70%;object-fit:contain;">
     </div>
     <h1 class="reveal r2 i18n" data-en="Thank you for your attention" style="font-family:var(--font-display); font-weight:800; font-size:clamp(2.4rem,4.5vw,4rem);">Спасибо за внимание</h1>
-    <p class="reveal r3 i18n" data-en="Questions?" style="font-size:1.3rem; color:var(--mint); margin-top:14px; letter-spacing:0.02em;">Вопросы?</p>
+    <p class="reveal r3 i18n" data-en="Questions?" style="font-size:1.5rem; color:var(--mint); margin-top:14px; letter-spacing:0.02em;">Вопросы?</p>
   </div>
-  <div class="reveal r4" style="position:absolute; right:7vw; bottom:6vh; text-align:right; font-size:0.85rem; color:rgba(245,251,248,0.65); line-height:1.7;">
+  <div class="reveal r4" style="position:absolute; right:7vw; bottom:14vh; text-align:right; font-size:1rem; color:rgba(245,251,248,0.65); line-height:1.7;">
     <div>i.gazizov@customs.uz</div>
     <div><span class="i18n" data-en="Mob.:">Моб. тел.:</span> +998 99 079 04 40</div>
   </div>
@@ -463,7 +489,7 @@ svg.connectors line, svg.connectors path{
   </div>
 </div>
 
-<div class="brand-mark i18n" data-en="X-Vision AI · State Customs Committee of Uzbekistan">X-Vision AI &nbsp;·&nbsp; ГТК Республики Узбекистан</div>
+<div class="brand-mark i18n" data-en="X-Vision AI · Customs Committee of Uzbekistan">X-Vision AI &nbsp;·&nbsp; ТК Республики Узбекистан</div>
 
 <div class="lang-toggle">
   <div class="lang-btn active" id="langRu" onclick="setLang('ru')">RU</div>

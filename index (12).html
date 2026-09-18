@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Non-Intrusive Inspection in Customs of Republic of Uzbekistan: Practice, Challenges, and Opportunities for Cooperation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --bg-0:#081C15;
+  --bg-1:#0B2D22;
+  --bg-2:#12372A;
+  --bg-3:#1B4332;
+  --white:#F5FBF8;
+  --mint:#95D5B2;
+  --emerald:#40916C;
+  --emerald-deep:#2D6A4F;
+  --turquoise:#4FD1C5;
+  --line:rgba(149,213,178,0.16);
+  --glass:rgba(245,251,248,0.045);
+  --glass-border:rgba(149,213,178,0.14);
+  --font-display:'Manrope',sans-serif;
+  --font-body:'Inter',sans-serif;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{
+  width:100%;height:100%;
+  background:var(--bg-0);
+  color:var(--white);
+  font-family:var(--font-body);
+  overflow:hidden;
+  font-size:19px;
+}
+
+/* ---------- background canvas layers ---------- */
+#bg-canvas{
+  position:fixed; inset:0; z-index:0;
+  background:
+    radial-gradient(ellipse at 20% 15%, rgba(64,145,108,0.16), transparent 55%),
+    radial-gradient(ellipse at 85% 80%, rgba(79,209,197,0.10), transparent 55%),
+    linear-gradient(160deg,var(--bg-0) 0%, var(--bg-1) 45%, var(--bg-0) 100%);
+}
+.grid-layer{
+  position:fixed; inset:-5% ;
+  z-index:1;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:64px 64px;
+  opacity:0.35;
+  animation:gridDrift 60s linear infinite;
+  pointer-events:none;
+}
+@keyframes gridDrift{
+  0%{transform:translate(0,0);}
+  100%{transform:translate(-64px,-64px);}
+}
+canvas#particles{position:fixed; inset:0; z-index:1; pointer-events:none;}
+
+/* ---------- deck ---------- */
+.deck{
+  position:relative; z-index:2;
+  width:100vw; height:100vh;
+}
+.slide{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:6vh 7vw 13vh 7vw;
+  opacity:0; visibility:hidden;
+  transform:scale(0.985);
+  filter:blur(6px);
+  transition:opacity .7s ease, transform .7s ease, filter .7s ease;
+}
+.slide.active{
+  opacity:1; visibility:visible; transform:none; filter:none;
+}
+.slide .reveal{ opacity:0; transform:translateY(16px); transition:opacity .6s ease, transform .6s ease; }
+.slide.active .reveal{ opacity:1; transform:translateY(0); }
+.slide.active .r1{transition-delay:.08s;}
+.slide.active .r2{transition-delay:.18s;}
+.slide.active .r3{transition-delay:.28s;}
+.slide.active .r4{transition-delay:.38s;}
+.slide.active .r5{transition-delay:.48s;}
+.slide.active .r6{transition-delay:.58s;}
+.slide.active .r7{transition-delay:.68s;}
+.slide.active .r8{transition-delay:.78s;}
+
+.eyebrow{
+  font-family:var(--font-body); font-size:0.92rem; letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--mint); opacity:0.75; margin-bottom:14px; font-weight:500;
+}
+h1.headline{
+  font-family:var(--font-display); font-weight:800;
+  font-size:clamp(2.2rem, 3.6vw, 3.3rem);
+  line-height:1.18; color:var(--white); max-width:900px;
+  letter-spacing:-0.01em;
+}
+.subhead{
+  font-family:var(--font-body); font-weight:400; font-size:1.22rem;
+  color:rgba(245,251,248,0.72); margin-top:16px; max-width:640px; line-height:1.6;
+}
+
+/* glass card */
+.glass{
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:18px;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  transition:transform .35s ease, box-shadow .35s ease, background .35s ease;
+}
+.glass:hover{
+  transform:translateY(-3px) scale(1.02);
+  box-shadow:0 0 0 1px rgba(149,213,178,0.25), 0 18px 40px -14px rgba(0,0,0,0.55), 0 0 32px rgba(79,209,197,0.14);
+  background:rgba(245,251,248,0.07);
+}
+.breathe{ animation:breathe 6s ease-in-out infinite; }
+@keyframes breathe{
+  0%,100%{ box-shadow:0 0 0 1px rgba(149,213,178,0.10), 0 0 24px rgba(64,145,108,0.10); }
+  50%{ box-shadow:0 0 0 1px rgba(149,213,178,0.22), 0 0 40px rgba(79,209,197,0.20); }
+}
+
+/* nav */
+.nav-dots{
+  position:fixed; right:34px; top:50%; transform:translateY(-50%);
+  z-index:10; display:flex; flex-direction:column; gap:14px;
+}
+.dot{
+  width:8px; height:8px; border-radius:50%;
+  background:rgba(245,251,248,0.25);
+  border:1px solid rgba(149,213,178,0.3);
+  cursor:pointer; transition:all .3s ease;
+}
+.dot.active{ background:var(--turquoise); box-shadow:0 0 10px rgba(79,209,197,0.7); transform:scale(1.35);}
+.arrows{
+  position:fixed; bottom:30px; left:34px;
+  z-index:10; display:flex; gap:18px; align-items:center;
+}
+.arrow-btn{
+  width:42px; height:42px; border-radius:50%;
+  background:var(--glass); border:1px solid var(--glass-border);
+  color:var(--mint); display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all .25s ease; backdrop-filter:blur(10px);
+}
+.arrow-btn:hover{ background:rgba(79,209,197,0.14); transform:scale(1.08); box-shadow:0 0 18px rgba(79,209,197,0.3);}
+.slide-counter{ font-size:0.95rem; color:rgba(245,251,248,0.5); letter-spacing:0.08em; min-width:52px; text-align:center;}
+
+/* utility */
+.row{display:flex; gap:4vw; align-items:center; width:100%;}
+.col{flex:1;}
+.v-divider{
+  width:1px; align-self:stretch;
+  background:linear-gradient(180deg, transparent, rgba(149,213,178,0.45) 20%, rgba(79,209,197,0.5) 50%, rgba(149,213,178,0.45) 80%, transparent);
+  box-shadow:0 0 12px rgba(79,209,197,0.25);
+  flex-shrink:0;
+}
+.tag{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 14px; border-radius:999px;
+  border:1px solid var(--glass-border); background:var(--glass);
+  font-size:0.92rem; color:var(--mint); letter-spacing:0.04em;
+}
+.decree-box{
+  border-left:2px solid var(--turquoise);
+  padding:12px 20px; margin:22px 0; background:rgba(79,209,197,0.05);
+  border-radius:0 10px 10px 0;
+}
+.decree-box b{color:var(--white); font-weight:600;}
+.big-stat{
+  font-family:var(--font-display); font-weight:800; font-size:6rem;
+  background:linear-gradient(135deg,var(--white),var(--turquoise));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  line-height:1;
+}
+
+/* connector svg lines */
+svg.connectors line, svg.connectors path{
+  stroke:rgba(149,213,178,0.35); stroke-width:1.2; fill:none;
+}
+.pulse-dot{ animation:travel 4s linear infinite; }
+
+/* footer brand mark */
+.brand-mark{
+  position:fixed; left:7vw; bottom:82px; z-index:6;
+  font-family:var(--font-display); font-size:0.72rem; letter-spacing:0.18em;
+  color:rgba(245,251,248,0.35); text-transform:uppercase;
+}
+
+/* ---------- lightbox (slide 3 image viewer) ---------- */
+.lightbox-overlay{
+  position:fixed; inset:0; z-index:100;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(4,14,10,0.72);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  opacity:0; visibility:hidden;
+  transition:opacity .35s ease, visibility .35s ease;
+}
+.lightbox-overlay.open{ opacity:1; visibility:visible; }
+.lightbox-glass{
+  position:relative;
+  background:rgba(245,251,248,0.06);
+  border:1px solid var(--glass-border);
+  border-radius:22px;
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  box-shadow:0 30px 80px -20px rgba(0,0,0,0.6), 0 0 40px rgba(79,209,197,0.14);
+  padding:28px;
+  width:97vw;
+  height:97vh;
+  max-width:none;
+  max-height:none;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+  transform:scale(0.94); transition:transform .35s ease;
+}
+.lightbox-overlay.open .lightbox-glass{ transform:scale(1); }
+#lightbox-img{
+  max-width:100%; max-height:90vh; width:auto; height:auto; object-fit:contain;
+  border-radius:12px;
+  box-shadow:0 0 30px rgba(79,209,197,0.12);
+}
+.lightbox-close{
+  position:absolute; top:14px; right:18px;
+  width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--glass); border:1px solid var(--glass-border);
+  color:var(--white); cursor:pointer; font-size:0.95rem;
+  transition:all .25s ease;
+}
+.lightbox-close:hover{ background:rgba(79,209,197,0.18); transform:rotate(90deg); }
+.lightbox-nav{ display:flex; align-items:center; gap:20px; }
+.lightbox-counter{ font-size:0.82rem; color:rgba(245,251,248,0.6); letter-spacing:0.06em; min-width:48px; text-align:center;}
+
+/* AI network diagram interactivity */
+.ai-diagram .ai-node{
+  cursor:pointer;
+  transform-box:fill-box; transform-origin:center;
+  transition:transform .3s ease;
+}
+.ai-diagram .ai-node circle{ transition:fill .3s ease, r .3s ease, filter .3s ease; }
+.ai-diagram .ai-node text{ transition:fill .3s ease; }
+.ai-diagram .ai-node:hover{ transform:scale(1.22); }
+.ai-diagram .ai-node:hover circle{ fill:#4FD1C5; filter:drop-shadow(0 0 6px rgba(79,209,197,0.8)); }
+.ai-diagram .ai-node:hover text{ fill:#F5FBF8; }
+
+/* gentle floating + glow animation for content cards across slides 1-5 */
+/* movement uses only transform (GPU-composited, smooth); glow is a separate
+   pseudo-layer animating opacity only — animating box-shadow directly every
+   frame is what caused the stutter before. */
+@keyframes floatCard{
+  0%,100%{ transform:translateY(0); }
+  50%{ transform:translateY(-6px); }
+}
+@keyframes floatGlow{
+  0%,100%{ opacity:0; }
+  50%{ opacity:1; }
+}
+.float-card{
+  position:relative;
+  animation:floatCard 7s ease-in-out infinite;
+  will-change:transform;
+  backface-visibility:hidden;
+}
+.float-card::after{
+  content:"";
+  position:absolute; inset:0;
+  border-radius:inherit;
+  box-shadow:0 0 0 1px rgba(149,213,178,0.22), 0 0 24px rgba(79,209,197,0.18);
+  opacity:0;
+  animation:floatGlow 7s ease-in-out infinite;
+  pointer-events:none;
+}
+.float-card:hover{ animation-play-state:paused; }
+.float-card:hover::after{ animation-play-state:paused; }
+.float-card:nth-of-type(1),.float-card:nth-of-type(1)::after{ animation-delay:0s; }
+.float-card:nth-of-type(2),.float-card:nth-of-type(2)::after{ animation-delay:0.7s; }
+.float-card:nth-of-type(3),.float-card:nth-of-type(3)::after{ animation-delay:1.4s; }
+.float-card:nth-of-type(4),.float-card:nth-of-type(4)::after{ animation-delay:2.1s; }
+.float-card:nth-of-type(5),.float-card:nth-of-type(5)::after{ animation-delay:2.8s; }
+
+/* gentle glow pulse for emblem images */
+@keyframes emblemGlow{
+  0%,100%{ filter:drop-shadow(0 0 0px rgba(79,209,197,0)); }
+  50%{ filter:drop-shadow(0 0 16px rgba(79,209,197,0.4)); }
+}
+.emblem-glow{ animation:emblemGlow 6s ease-in-out infinite; }
+
+.tag{ transition:all .3s ease; }
+.tag:hover{ background:rgba(79,209,197,0.16); border-color:rgba(79,209,197,0.4); transform:translateY(-2px); box-shadow:0 0 14px rgba(79,209,197,0.25); }
+
+/* language toggle */
+.lang-toggle{
+  position:fixed; top:28px; right:34px; z-index:10;
+  display:flex; gap:4px; padding:4px;
+  background:var(--glass); border:1px solid var(--glass-border); border-radius:999px;
+  backdrop-filter:blur(10px);
+}
+.lang-btn{
+  padding:6px 14px; border-radius:999px; cursor:pointer;
+  font-size:0.78rem; letter-spacing:0.04em; color:rgba(245,251,248,0.55);
+  transition:all .25s ease; font-family:var(--font-display); font-weight:700;
+}
+.lang-btn.active{ background:rgba(79,209,197,0.18); color:var(--white); box-shadow:0 0 12px rgba(79,209,197,0.25); }
+.lang-btn:hover{ color:var(--white); }
+
+@media (max-width: 860px){
+  .row{flex-direction:column;}
+  .nav-dots{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div id="bg-canvas"></div>
+<div class="grid-layer"></div>
+<canvas id="particles"></canvas>
+
+<div class="deck" id="deck">
+
+<!-- SLIDE 1 : TITLE -->
+<section class="slide" data-index="0">
+  <div class="row" style="align-items:center;">
+    <div class="col reveal r1" style="max-width:70%; text-align:center;">
+      <div class="eyebrow reveal r2 i18n" data-en="Customs Committee of the Republic of Uzbekistan" style="text-align:center;">Таможенный комитет Республики Узбекистан</div>
+      <h1 class="headline reveal r3 i18n" data-en="Non-Intrusive Inspection in Customs of Republic of Uzbekistan: Practice, Challenges, and Opportunities for Cooperation" style="text-align:center; max-width:none; font-size:clamp(1.54rem, 2.52vw, 2.31rem);">Неинтрузивный контроль в таможенных органах Республики Узбекистан: практика, вызовы и возможности сотрудничества</h1>
+      <p class="reveal r4 i18n" data-en="13th TEG-NII Meeting, December 2026" style="text-align:center; margin-top:14px; font-size:1.38rem; color:rgba(245,251,248,0.5); max-width:640px; margin-left:auto; margin-right:auto;">
+        13-е заседание TEG-NII, декабрь 2026
+      </p>
+    </div>
+     <img src="gtk_image2.png" alt="Герб ТК" class="emblem-glow" style="width:50%;height:50%;object-fit:contain;">
+  </div>
+  <div class="reveal r6" style="position:absolute; right:7vw; bottom:14vh; text-align:center; max-width:360px;">
+    <div class="i18n" data-en="Ilyas Ilmirovich Gazizov" style="font-family:var(--font-display); font-weight:700; font-size:1.2rem;">Ильяс Ильмирович Газизов</div>
+    <div style="color:rgba(245,251,248,0.6); font-size:1.05rem; margin-top:4px; line-height:1.5;">
+      <span class="i18n" data-en="Chief Inspector">Главный инспектор</span><br>
+      <span class="i18n" data-en="Targeting and Risk Monitoring Department">Управление таргетирования </span><br>
+      <span class="i18n" >и мониторинга рисков</span><br>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2 : CONTRIBUTION AREAS -->
+<section class="slide" data-index="1">
+  <div class="eyebrow reveal r1 i18n" data-en="13th TEG-NII Meeting">13-е заседание TEG-NII</div>
+  <h1 class="headline reveal r2 i18n" data-en="Contents Prepared for Discussion at the 13th TEG-NII Meeting" style="font-size:clamp(1.9rem,2.8vw,2.6rem);">Материалы, подготовленные для обсуждения на 13-м заседании TEG-NII</h1>
+
+  <div class="row" style="margin-top:30px; align-items:center; gap:3vw;">
+    <div class="col reveal r3" style="max-width:60%; display:flex; flex-direction:column; gap:14px;">
+      <div class="glass float-card" style="padding:18px 24px; display:flex; gap:16px; align-items:center;">
+        <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800; font-size:1.5rem;">01</span>
+        <div style="flex:1;">
+          <div class="i18n" data-en="Project: NII data exchange between China and Central Asian customs (5+1 format)" style="font-size:1.02rem; font-weight:600;">Проект обмена данными НИК между Китаем и странами Центральной Азии (формат 5+1)</div>
+        </div>
+      </div>
+      <div class="glass float-card" style="padding:18px 24px; display:flex; gap:16px; align-items:center;">
+        <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800; font-size:1.5rem;">02</span>
+        <div style="flex:1;">
+          <div class="i18n" data-en="Proposed discussion topics — AI applications in NII image analysis (introducing the X-Vision AI platform)" style="font-size:1.02rem; font-weight:600;">Предложения по темам для обсуждения — применение ИИ при анализе снимков НИК (платформа X-Vision AI)</div>
+        </div>
+      </div>
+      <div class="glass float-card" style="padding:18px 24px; display:flex; gap:16px; align-items:center;">
+        <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800; font-size:1.5rem;">03</span>
+        <div style="flex:1;">
+          <div class="i18n" data-en="Experience with UFF 2.0 / UFF 3.0.0 implementation" style="font-size:1.02rem; font-weight:600;">Опыт внедрения UFF 2.0 / UFF 3.0.0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col reveal r5" style="max-width:36%; display:flex; justify-content:center;">
+      <img src="WCO.png" alt="World Customs Organization" class="emblem-glow" style="width:100%; max-width:280px; height:auto; object-fit:contain;">
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3 : CHINA-CENTRAL ASIA (5+1) PROJECT -->
+<section class="slide" data-index="2">
+  <div class="eyebrow reveal r1 i18n" data-en="International Cooperation Project">Проект международного сотрудничества</div>
+  <h1 class="headline reveal r2 i18n" data-en="NII data exchange between China and Central Asian customs (5+1 format)" style="font-size:clamp(1.9rem,2.8vw,2.6rem);">Обмен данными НИК между Китаем и странами Центральной Азии (формат 5+1)</h1>
+
+  <div class="row" style="margin-top:24px; align-items:flex-start; gap:2.5vw;">
+    <div class="col reveal r3" style="max-width:42%; display:flex; flex-direction:column; gap:14px;">
+      <p class="i18n" data-en="A project on cooperation in non-intrusive inspection, intelligent image recognition, and the exchange of NII scan data between China and the Central Asian customs administrations (5+1 format)." style="color:rgba(245,251,248,0.78); line-height:1.5; font-size:0.98rem;">
+        Проект по сотрудничеству в области неинтрузивного досмотра, интеллектуального распознавания изображений и обмена данными НИК между Китаем и странами Центральной Азии (формат 5+1).
+      </p>
+
+      <div>
+        <div class="i18n" data-en="Progress" style="font-size:0.76rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--mint); margin-bottom:6px;">Ход реализации</div>
+        <div style="font-size:0.86rem; line-height:1.65; color:rgba(245,251,248,0.72);">
+          <span class="i18n" data-en="1st meeting — Urumqi, China, October 2025">1-е заседание — Урумчи (КНР), октябрь 2025</span><br>
+          <span class="i18n" data-en="2nd meeting — mid-September 2026">2-е заседание — середина сентября 2026</span><br>
+          <span class="i18n" data-en="Exchange platform — over an encrypted channel">Платформа обмена — через зашифрованный канал</span><br>
+          <span class="i18n" data-en="Phase 1 (pilot) — Kazakhstan ↔ China">Пилот (1-й этап) — Казахстан ↔ Китай</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="i18n" data-en="Technical basis (draft specification)" style="font-size:0.76rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--mint); margin-bottom:6px;">Техническая основа (проект спецификации)</div>
+        <div style="font-size:0.86rem; line-height:1.65; color:rgba(245,251,248,0.72);">
+          <span class="i18n" data-en="Message format — JSON, UTF-8 encoding">Формат сообщений — JSON, кодировка UTF-8</span><br>
+          <span class="i18n" data-en="Data — declaration number, HS code, weight, trade mode (export/transit) + NII scans (TIFF, ~40 MB)">Данные — номер декларации, код ТН ВЭД, вес, вид операции (экспорт/транзит) + снимки ИДК (TIFF, ~40 МБ)</span><br>
+          <span class="i18n" data-en="Exchange scenarios — request-based and proactive push, with FLC validation">Сценарии обмена — по запросу и проактивная отправка, с проверкой FLC</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="v-divider reveal r4"></div>
+
+    <div class="col reveal r5" style="max-width:52%; display:flex; justify-content:center;">
+      <div class="glass" style="padding:10px; overflow:hidden; width:100%; height:62vh; cursor:pointer;" onclick="openLightbox(0, fivePlusOneImages)">
+        <img src="5+1.png" alt="Формат 5+1" style="width:100%;height:100%;object-fit:contain;border-radius:12px;">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4 : ROLE OF AI + PLATFORM OVERVIEW -->
+<section class="slide" data-index="3" style="justify-content:flex-start; padding-top:8vh;">
+  <div class="eyebrow reveal r1 i18n" data-en="Strategic Context">Стратегический контекст</div>
+  <h1 class="headline reveal r2 i18n" data-en="The Role of Artificial Intelligence in Non-Intrusive Inspection" style="font-size:clamp(1.9rem,2.8vw,2.6rem);">Роль искусственного интеллекта в неинтрузивном контроле</h1>
+
+  <div class="row" style="margin-top:20px; align-items:stretch; gap:2.5vw;">
+    <div class="col reveal r3" style="max-width:44%; display:flex; flex-direction:column; justify-content:center; gap:16px;">
+      <p class="i18n" data-en="Artificial intelligence is becoming a key tool for improving the efficiency of non-intrusive inspection: it speeds up X-ray image analysis, reduces the workload on inspectors, and improves detection accuracy while preserving throughput at border and customs posts." style="color:rgba(245,251,248,0.78); line-height:1.55; font-size:1.12rem;">
+        Искусственный интеллект становится ключевым инструментом повышения эффективности неинтрузивного контроля: ускоряет анализ рентгеновских изображений, снижает нагрузку на инспекторов и повышает точность выявления нарушений при сохранении пропускной способности постов.
+      </p>
+      <div class="decree-box float-card">
+        <span class="i18n" data-en="The World Customs Organization, through the Technical Experts Group on Non-Intrusive Inspection (TEG-NII), promotes the exchange of national experience, technologies, and best practices in AI-based image analysis among member administrations.">Всемирная таможенная организация (ВТамО), через Техническую экспертную группу по неинтрузивному контролю (TEG-NII), способствует обмену национальным опытом, технологиями и передовыми практиками ИИ-анализа изображений между администрациями-членами.</span>
+      </div>
+    </div>
+
+    <div class="v-divider reveal r4"></div>
+
+    <div class="col reveal r5" style="max-width:48%; display:flex; flex-direction:column; gap:12px;">
+      <div class="i18n" data-en="Platform Overview" style="font-size:0.8rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--mint);">Обзор платформы</div>
+      <h2 style="font-family:var(--font-display); font-weight:800; font-size:1.6rem; margin:0;">X-Vision AI</h2>
+      <p class="i18n" data-en="A unified intelligent platform for AI-based X-ray image analysis, covering railway, vehicle, and baggage control channels. Works as a web dashboard with an API for integration into existing customs IT systems." style="color:rgba(245,251,248,0.72); line-height:1.5; font-size:0.98rem;">
+        Единая интеллектуальная платформа анализа рентгеновских изображений с помощью ИИ, охватывающая железнодорожный, автомобильный и багажный каналы контроля. Работает как веб-дашборд с API для интеграции в существующие таможенные ИС.
+      </p>
+      <div class="glass" style="padding:8px; overflow:hidden; width:100%; height:34vh; cursor:pointer;" onclick="openLightbox(0)">
+        <img src="1.png" alt="Дашборд X-Vision AI" style="width:100%;height:100%;object-fit:contain;border-radius:12px;">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5 : XRAY PROCESS -->
+<section class="slide" data-index="4">
+  <div class="eyebrow reveal r1 i18n" data-en="Intelligent X-ray Image Analysis System">Интеллектуальная система анализа рентгеновских изображений </div>
+  <h1 class="headline reveal r2 i18n" data-en="Railway Transport Analysis Module" style="font-size:clamp(1.9rem,2.8vw,2.6rem);">Модуль анализа железнодорожного транспорта</h1>
+
+  <div class="reveal r3" style="margin-top:26px; display:grid; grid-template-columns:repeat(3,1fr); gap:20px;">
+    <div class="glass float-card" style="overflow:hidden; cursor:pointer;" onclick="openLightbox(1)">
+      <div style="height:190px; overflow:hidden;"><img src="2.png" alt="Определение типа вагона" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="padding:11px 16px; display:flex; gap:10px; align-items:center;">
+        <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">01</span>
+        <span class="i18n" data-en="Wagon type identification">Определение типа вагона</span>
+      </div>
+    </div>
+    <div class="glass float-card" style="overflow:hidden; cursor:pointer;" onclick="openLightbox(2)">
+      <div style="height:190px; overflow:hidden;"><img src="3.png" alt="Сегментация конструкции" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="padding:11px 16px; display:flex; gap:10px; align-items:center;">
+        <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">02</span>
+        <span class="i18n" data-en="Structure segmentation">Сегментация конструкции</span>
+      </div>
+    </div>
+    <div class="glass float-card" style="overflow:hidden; cursor:pointer;" onclick="openLightbox(3)">
+      <div style="height:190px; overflow:hidden;"><img src="4.png" alt="Поиск скрытых аномалий" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="padding:11px 16px; display:flex; gap:10px; align-items:center;">
+        <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">03</span>
+        <span class="i18n" data-en="Hidden anomaly detection">Поиск скрытых аномалий</span>
+      </div>
+    </div>
+    <div class="glass float-card" style="overflow:hidden; cursor:pointer;" onclick="openLightbox(4)">
+      <div style="height:190px; overflow:hidden;"><img src="5.png" alt="Обнаружение и классификация грузов" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="padding:11px 16px; display:flex; gap:10px; align-items:center;">
+        <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">04</span>
+        <span class="i18n" data-en="Cargo detection and classification">Обнаружение и классификация грузов</span>
+      </div>
+    </div>
+    <div class="glass float-card" style="overflow:hidden; cursor:pointer;" onclick="openLightbox(6)">
+      <div style="height:190px; overflow:hidden;"><img src="7.png" alt="Оценка степени заполненности вагона" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="padding:11px 16px; display:flex; gap:10px; align-items:center;">
+        <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">05</span>
+        <span class="i18n" data-en="Wagon load-status assessment">Оценка степени заполненности вагона</span>
+      </div>
+    </div>
+    <div class="glass float-card" style="overflow:hidden; cursor:pointer;" onclick="openLightbox(7)">
+      <div style="height:190px; overflow:hidden;"><img src="8.png" alt="Сравнение изображений груза поста въезда и выезда" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="padding:11px 16px; display:flex; gap:10px; align-items:center;">
+        <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">06</span>
+        <span class="i18n" data-en="Entry/exit cargo image comparison">Сравнение изображений груза поста въезда и выезда</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6 : AUTO MODULE -->
+<section class="slide" data-index="5">
+  <div class="eyebrow reveal r1 i18n" data-en="Platform Structure">Структура платформы</div>
+  <h1 class="headline reveal r2 i18n" data-en="Vehicle Analysis Module" style="font-size:clamp(1.9rem,2.8vw,2.6rem);">Модуль анализа автотранспортных средств</h1>
+
+  <div class="row" style="margin-top:30px; align-items:flex-start; gap:3vw;">
+    <div class="col reveal r3" style="max-width:36%; display:flex; flex-direction:column; gap:16px; text-align:left;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-family:var(--font-display); font-weight:800; font-size:1.3rem;">Авто</span>
+        <span class="tag i18n" data-en="In development" style="color:#F0C674; border-color:rgba(240,198,116,0.35);">В разработке</span>
+      </div>
+      <p class="i18n" data-en="Most existing vehicle scanners are Rapiscan Z-portal backscatter devices, which makes full AI-based analysis difficult." style="color:rgba(245,251,248,0.72); line-height:1.5; font-size:1.05rem; text-align:left;">
+        Большинство действующих авто-ИДК — устройства Rapiscan Z-portal на основе backscatter-технологии, что существенно затрудняет полноценный ИИ-анализ.
+      </p>
+      <div class="decree-box float-card" style="text-align:left;">
+        <span class="i18n" data-en="Preparation underway to equip existing Z-portals with additional high-energy blocks — Rapiscan Eagle P60 ZBX.">Ведётся подготовка к оснащению существующих Z-portal дополнительными блоками высокой энергии — Rapiscan Eagle P60 ZBX.</span>
+      </div>
+    </div>
+
+    <div class="col reveal r5" style="max-width:60%; display:flex; justify-content:center;">
+      <div class="glass" style="padding:10px; overflow:hidden; width:100%; height:68vh; cursor:pointer;" onclick="openLightbox(0, zbxImages)">
+        <img src="ZBX.jpg" alt="Rapiscan Eagle P60 ZBX" style="width:100%;height:100%;object-fit:contain;border-radius:12px;">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7 : BAGGAGE MODULE -->
+<section class="slide" data-index="6">
+  <div class="eyebrow reveal r1 i18n" data-en="Platform Structure">Структура платформы</div>
+  <h1 class="headline reveal r2 i18n" data-en="Baggage Analysis Module" style="font-size:clamp(1.9rem,2.8vw,2.6rem);">Модуль анализа багажа</h1>
+
+  <div class="reveal r3" style="margin-top:18px; display:flex; align-items:center; gap:12px;">
+    <span style="font-family:var(--font-display); font-weight:800; font-size:1.3rem;">Багаж</span>
+    <span class="tag i18n" data-en="Deployed">Внедрено</span>
+  </div>
+
+  <p class="reveal r3 i18n" data-en="Computer-vision model for detecting prohibited and declarable items on baggage X-ray scans." style="color:rgba(245,251,248,0.72); line-height:1.5; font-size:1.05rem; margin-top:8px; max-width:900px;">
+    Модель компьютерного зрения для обнаружения запрещённых и подлежащих декларированию предметов на рентген-снимках багажа.
+  </p>
+
+  <div class="reveal r4" style="margin-top:8px;">
+    <span class="i18n" data-en="Trained on 50,000 images. Detects:" style="font-size:0.92rem; color:rgba(245,251,248,0.55);">Обучена на 50 000 изображений. Распознаёт:</span>
+    <div style="display:flex; flex-wrap:wrap; gap:7px; margin-top:8px;">
+      <span class="tag i18n" data-en="Power bank (type 1)" style="font-size:0.86rem; padding:5px 12px;">Портативный зарядник (тип 1)</span>
+      <span class="tag i18n" data-en="Power bank (type 2)" style="font-size:0.86rem; padding:5px 12px;">Портативный зарядник (тип 2)</span>
+      <span class="tag i18n" data-en="Mobile phone" style="font-size:0.86rem; padding:5px 12px;">Мобильный телефон</span>
+      <span class="tag i18n" data-en="Laptop" style="font-size:0.86rem; padding:5px 12px;">Ноутбук</span>
+      <span class="tag i18n" data-en="Tablet" style="font-size:0.86rem; padding:5px 12px;">Планшет</span>
+      <span class="tag i18n" data-en="Cosmetics" style="font-size:0.86rem; padding:5px 12px;">Косметика</span>
+      <span class="tag i18n" data-en="Liquid / water" style="font-size:0.86rem; padding:5px 12px;">Жидкость / вода</span>
+      <span class="tag i18n" data-en="Lighter (non-metallic)" style="font-size:0.86rem; padding:5px 12px;">Зажигалка (неметалл)</span>
+      <span class="tag i18n" data-en="Knife" style="font-size:0.86rem; padding:5px 12px;">Нож</span>
+      <span class="tag i18n" data-en="Pistol" style="font-size:0.86rem; padding:5px 12px;">Пистолет</span>
+    </div>
+  </div>
+
+  <div class="reveal r5" style="margin-top:14px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+    <div class="glass" style="padding:6px; overflow:hidden; height:190px; cursor:pointer;" onclick="openLightbox(0, baggageImages)"><img src="bag0.png" alt="Багаж 1" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+    <div class="glass" style="padding:6px; overflow:hidden; height:190px; cursor:pointer;" onclick="openLightbox(1, baggageImages)"><img src="bag1.png" alt="Багаж 2" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+    <div class="glass" style="padding:6px; overflow:hidden; height:190px; cursor:pointer;" onclick="openLightbox(2, baggageImages)"><img src="bag2.png" alt="Багаж 3" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+    <div class="glass" style="padding:6px; overflow:hidden; height:190px; cursor:pointer;" onclick="openLightbox(3, baggageImages)"><img src="bag3.png" alt="Багаж 4" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+    <div class="glass" style="padding:6px; overflow:hidden; height:190px; cursor:pointer;" onclick="openLightbox(4, baggageImages)"><img src="bag4.png" alt="Багаж 5" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+    <div class="glass" style="padding:6px; overflow:hidden; height:190px; cursor:pointer;" onclick="openLightbox(5, baggageImages)"><img src="bag5.png" alt="Багаж 6" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+    <div class="glass" style="padding:6px; overflow:hidden; height:190px; cursor:pointer;" onclick="openLightbox(6, baggageImages)"><img src="bag6.png" alt="Багаж 7" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+    <div class="glass" style="padding:6px; overflow:hidden; height:190px; cursor:pointer;" onclick="openLightbox(7, baggageImages)"><img src="bag7.png" alt="Багаж 8" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+  </div>
+</section>
+
+<!-- SLIDE 8 : CHALLENGES CLUSTER -->
+<section class="slide" data-index="7">
+  <div class="eyebrow reveal r1 i18n" data-en="Lessons Learned">Извлечённые уроки</div>
+  <h1 class="headline reveal r2 i18n" data-en="Challenges We Encountered" style="font-size:clamp(1.9rem,2.8vw,2.6rem);">Сложности, с которыми мы столкнулись</h1>
+
+  <div class="reveal r3" style="margin-top:26px; display:grid; grid-template-columns:repeat(2,1fr); gap:18px;">
+
+    <div class="glass float-card" style="padding:20px 24px; display:flex; gap:16px; align-items:flex-start;">
+      <svg viewBox="0 0 56 56" width="52" height="52" fill="none" style="flex-shrink:0;">
+        <rect x="10" y="18" width="36" height="26" rx="2" stroke="var(--turquoise)" stroke-width="2"/>
+        <path d="M10 22 L28 10 L46 22" stroke="var(--turquoise)" stroke-width="2" fill="none" stroke-linejoin="round"/>
+        <line x1="16" y1="30" x2="40" y2="30" stroke="var(--turquoise)" stroke-width="1.6"/>
+        <line x1="16" y1="36" x2="34" y2="36" stroke="var(--turquoise)" stroke-width="1.6"/>
+      </svg>
+      <div>
+        <div style="font-family:var(--font-display); font-weight:700; font-size:1.05rem; margin-bottom:6px;"><span style="color:var(--turquoise);">15+</span> <span class="i18n" data-en="years of unlabeled data">лет неразмеченных данных</span></div>
+        <div class="i18n" data-en="A vast X-ray scan archive accumulated over 15+ years remains unstructured and unlabeled." style="font-size:0.88rem; color:rgba(245,251,248,0.62); line-height:1.45;">Огромный архив рентген-снимков, накопленный за 15+ лет, остаётся неструктурированным и без разметки.</div>
+      </div>
+    </div>
+
+    <div class="glass float-card" style="padding:20px 24px; display:flex; gap:16px; align-items:flex-start;">
+      <svg viewBox="0 0 56 56" width="52" height="52" fill="none" style="flex-shrink:0;">
+        <circle cx="20" cy="18" r="8" stroke="var(--turquoise)" stroke-width="2"/>
+        <path d="M6 46 Q6 30 20 30 Q34 30 34 46" stroke="var(--turquoise)" stroke-width="2" fill="none"/>
+        <circle cx="42" cy="16" r="8" stroke="var(--turquoise)" stroke-width="2" stroke-dasharray="3 3"/>
+        <line x1="38" y1="16" x2="46" y2="16" stroke="var(--turquoise)" stroke-width="2"/>
+      </svg>
+      <div>
+        <div class="i18n" data-en="Staff shortage" style="font-family:var(--font-display); font-weight:700; font-size:1.05rem; margin-bottom:6px;">Нехватка кадров</div>
+        <div class="i18n" data-en="Not enough specialists for structuring, cleaning, and labeling data." style="font-size:0.88rem; color:rgba(245,251,248,0.62); line-height:1.45;">Недостаточно специалистов для структурирования, очистки и разметки данных.</div>
+      </div>
+    </div>
+
+    <div class="glass float-card" style="padding:20px 24px; display:flex; gap:16px; align-items:flex-start;">
+      <svg viewBox="0 0 56 56" width="52" height="52" fill="none" style="flex-shrink:0;">
+        <line x1="10" y1="46" x2="46" y2="46" stroke="var(--turquoise)" stroke-width="2"/>
+        <rect x="14" y="30" width="8" height="16" stroke="var(--turquoise)" stroke-width="2"/>
+        <rect x="26" y="22" width="8" height="24" stroke="var(--turquoise)" stroke-width="2" stroke-dasharray="3 3"/>
+        <rect x="38" y="34" width="8" height="12" stroke="var(--turquoise)" stroke-width="2"/>
+      </svg>
+      <div>
+        <div class="i18n" data-en="Shortage of violation data" style="font-family:var(--font-display); font-weight:700; font-size:1.05rem; margin-bottom:6px;">Дефицит данных о нарушениях</div>
+        <div class="i18n" data-en="Few images of contraband and anomalies; no established methodology for generating synthetic data." style="font-size:0.88rem; color:rgba(245,251,248,0.62); line-height:1.45;">Мало изображений контрабанды и аномалий; нет отработанной методики генерации синтетических данных.</div>
+      </div>
+    </div>
+
+    <div class="glass float-card" style="padding:20px 24px; display:flex; gap:16px; align-items:flex-start;">
+      <svg viewBox="0 0 56 56" width="52" height="52" fill="none" style="flex-shrink:0;">
+        <rect x="16" y="16" width="24" height="24" rx="2" stroke="var(--turquoise)" stroke-width="2"/>
+        <rect x="24" y="24" width="8" height="8" stroke="var(--turquoise)" stroke-width="1.6"/>
+        <line x1="20" y1="10" x2="20" y2="16" stroke="var(--turquoise)" stroke-width="2"/>
+        <line x1="28" y1="10" x2="28" y2="16" stroke="var(--turquoise)" stroke-width="2"/>
+        <line x1="36" y1="10" x2="36" y2="16" stroke="var(--turquoise)" stroke-width="2"/>
+        <line x1="20" y1="40" x2="20" y2="46" stroke="var(--turquoise)" stroke-width="2"/>
+        <line x1="28" y1="40" x2="28" y2="46" stroke="var(--turquoise)" stroke-width="2"/>
+        <line x1="36" y1="40" x2="36" y2="46" stroke="var(--turquoise)" stroke-width="2"/>
+      </svg>
+      <div>
+        <div class="i18n" data-en="Limited computing resources" style="font-family:var(--font-display); font-weight:700; font-size:1.05rem; margin-bottom:6px;">Ограниченные вычисления</div>
+        <div class="i18n" data-en="Insufficient capacity for training, testing, and industrial deployment of AI models." style="font-size:0.88rem; color:rgba(245,251,248,0.62); line-height:1.45;">Недостаточно мощностей для обучения, тестирования и промышленного внедрения моделей ИИ.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- SLIDE 9 : UFF EXPERIENCE -->
+<section class="slide" data-index="8">
+  <h1 class="headline reveal r2 i18n" data-en="Experience with UFF 2.0 / UFF 3.0.0 Implementation" style="font-size:clamp(1.9rem,2.8vw,2.6rem);">Опыт внедрения UFF 2.0 / UFF 3.0.0</h1>
+
+  <div class="row" style="margin-top:36px; align-items:center; gap:3vw;">
+    <div class="col reveal r3" style="max-width:56%; display:flex; flex-direction:column; gap:18px;">
+      <span class="tag i18n" data-en="Area of interest — not yet implemented" style="align-self:flex-start; color:#F0C674; border-color:rgba(240,198,116,0.35);">Зона интереса — не внедрено</span>
+      <p class="i18n" data-en="Uzbekistan currently has no practical experience using the UFF 2.0 or UFF 3.0.0 formats." style="color:rgba(245,251,248,0.82); line-height:1.55; font-size:1.12rem;">
+        Узбекистан пока не имеет практического опыта использования форматов UFF 2.0 или UFF 3.0.0.
+      </p>
+      <p class="i18n" data-en="This is an area of interest for us: we are considering a transition to a standardized data-exchange format and would like to learn from the practical experience of administrations that have already tested and deployed it." style="color:rgba(245,251,248,0.68); line-height:1.55; font-size:1rem;">
+        Это зона нашего интереса: мы рассматриваем переход на стандартизированный формат обмена данными и хотели бы изучить практический опыт администраций, уже протестировавших и внедривших эти форматы.
+      </p>
+      <div class="decree-box float-card">
+        <span class="i18n" data-en="We are ready to engage in this discussion as a participant seeking to adopt best practices, not as a presenter of results.">Готовы к участию в обсуждении как сторона, перенимающая опыт, а не как докладчик о результатах.</span>
+      </div>
+    </div>
+
+    <div class="col reveal r5" style="max-width:36%; display:flex; justify-content:center;">
+      <svg viewBox="0 0 200 200" width="230" height="230" fill="none">
+        <circle cx="100" cy="100" r="92" stroke="var(--turquoise)" stroke-width="1.5" opacity="0.3" stroke-dasharray="4 6"/>
+        <circle cx="70" cy="90" r="28" stroke="var(--turquoise)" stroke-width="2.4"/>
+        <circle cx="130" cy="110" r="28" stroke="var(--turquoise)" stroke-width="2.4" stroke-dasharray="4 5"/>
+        <path d="M96 90 L104 90" stroke="var(--turquoise)" stroke-width="2.4"/>
+        <path d="M100 86 L108 90 L100 94" stroke="var(--turquoise)" stroke-width="2.4" fill="none" stroke-linejoin="round"/>
+        <path d="M104 110 L96 110" stroke="var(--turquoise)" stroke-width="2.4"/>
+        <path d="M100 114 L92 110 L100 106" stroke="var(--turquoise)" stroke-width="2.4" fill="none" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 10 : PROPOSALS -->
+<section class="slide" data-index="9">
+  <div class="eyebrow reveal r1 i18n" data-en="Proposals">Предложения</div>
+  <h1 class="headline reveal r2 i18n" data-en="Proposals for the TEG-NII Agenda" style="font-size:clamp(1.9rem,2.8vw,2.6rem);">Предложения в повестку TEG-NII</h1>
+
+  <div class="reveal r3" style="margin-top:26px; display:grid; grid-template-columns:repeat(2,1fr); gap:18px;">
+
+    <div class="glass float-card" style="padding:20px 24px; display:flex; gap:16px; align-items:flex-start;">
+      <svg viewBox="0 0 56 56" width="52" height="52" fill="none" style="flex-shrink:0;">
+        <circle cx="16" cy="28" r="9" stroke="var(--turquoise)" stroke-width="2"/>
+        <circle cx="40" cy="28" r="9" stroke="var(--turquoise)" stroke-width="2"/>
+        <path d="M27 22 L34 22" stroke="var(--turquoise)" stroke-width="2"/>
+        <path d="M22 33 L29 33" stroke="var(--turquoise)" stroke-width="2"/>
+        <path d="M31 19 L35 22 L31 25" stroke="var(--turquoise)" stroke-width="2" fill="none" stroke-linejoin="round"/>
+        <path d="M26 30 L22 33 L26 36" stroke="var(--turquoise)" stroke-width="2" fill="none" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <div class="i18n" data-en="Shared tooling for large-archive labeling" style="font-family:var(--font-display); font-weight:700; font-size:1.05rem; margin-bottom:6px;">Обмен инструментами разметки больших архивов</div>
+        <div style="font-size:0.88rem; color:rgba(245,251,248,0.62); line-height:1.45;"><span style="color:var(--mint); font-weight:600;" class="i18n" data-en="Rationale: ">Обоснование: </span><span class="i18n" data-en="Most administrations hold large, unlabeled scan archives — shared pipelines would accelerate AI adoption across the WCO community.">у большинства администраций накоплены большие неразмеченные архивы снимков — совместные инструменты ускорят внедрение ИИ во всём сообществе ВТамО.</span></div>
+      </div>
+    </div>
+
+    <div class="glass float-card" style="padding:20px 24px; display:flex; gap:16px; align-items:flex-start;">
+      <svg viewBox="0 0 56 56" width="52" height="52" fill="none" style="flex-shrink:0;">
+        <path d="M28 14 L48 22 L28 30 L8 22 Z" stroke="var(--turquoise)" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M18 26 V36 Q28 42 38 36 V26" stroke="var(--turquoise)" stroke-width="2" fill="none"/>
+        <line x1="48" y1="22" x2="48" y2="34" stroke="var(--turquoise)" stroke-width="2"/>
+      </svg>
+      <div>
+        <div class="i18n" data-en="Joint capacity-building programs" style="font-family:var(--font-display); font-weight:700; font-size:1.05rem; margin-bottom:6px;">Совместные программы подготовки кадров</div>
+        <div style="font-size:0.88rem; color:rgba(245,251,248,0.62); line-height:1.45;"><span style="color:var(--mint); font-weight:600;" class="i18n" data-en="Rationale: ">Обоснование: </span><span class="i18n" data-en="Shortage of specialists for data structuring and labeling is a common bottleneck for developing administrations — joint training narrows the expertise gap.">нехватка специалистов для структурирования и разметки данных — типичное узкое место развивающихся администраций; совместное обучение сокращает разрыв в экспертизе.</span></div>
+      </div>
+    </div>
+
+    <div class="glass float-card" style="padding:20px 24px; display:flex; gap:16px; align-items:flex-start;">
+      <svg viewBox="0 0 56 56" width="52" height="52" fill="none" style="flex-shrink:0;">
+        <path d="M28 10 L48 18 L28 26 L8 18 Z" stroke="var(--turquoise)" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M8 28 L28 36 L48 28" stroke="var(--turquoise)" stroke-width="2" fill="none" stroke-linejoin="round"/>
+        <path d="M8 38 L28 46 L48 38" stroke="var(--turquoise)" stroke-width="2" fill="none" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <div class="i18n" data-en="Joint synthetic customs-violation data methodology" style="font-family:var(--font-display); font-weight:700; font-size:1.05rem; margin-bottom:6px;">Методика синтетических данных нарушений</div>
+        <div style="font-size:0.88rem; color:rgba(245,251,248,0.62); line-height:1.45;"><span style="color:var(--mint); font-weight:600;" class="i18n" data-en="Rationale: ">Обоснование: </span><span class="i18n" data-en="Real violation cases are statistically rare, limiting model quality — a shared synthetic-data standard would speed up training across administrations.">реальные случаи нарушений статистически редки, что ограничивает качество моделей; общий стандарт синтетических данных ускорит обучение моделей у всех администраций.</span></div>
+      </div>
+    </div>
+
+    <div class="glass float-card" style="padding:20px 24px; display:flex; gap:16px; align-items:flex-start;">
+      <svg viewBox="0 0 56 56" width="52" height="52" fill="none" style="flex-shrink:0;">
+        <rect x="12" y="10" width="32" height="10" rx="2" stroke="var(--turquoise)" stroke-width="2"/>
+        <rect x="12" y="23" width="32" height="10" rx="2" stroke="var(--turquoise)" stroke-width="2"/>
+        <rect x="12" y="36" width="32" height="10" rx="2" stroke="var(--turquoise)" stroke-width="2"/>
+        <circle cx="18" cy="15" r="1.6" fill="var(--turquoise)"/>
+        <circle cx="18" cy="28" r="1.6" fill="var(--turquoise)"/>
+        <circle cx="18" cy="41" r="1.6" fill="var(--turquoise)"/>
+      </svg>
+      <div>
+        <div class="i18n" data-en="Compute-support programs for developing administrations" style="font-family:var(--font-display); font-weight:700; font-size:1.05rem; margin-bottom:6px;">Программы поддержки вычислительными ресурсами</div>
+        <div style="font-size:0.88rem; color:rgba(245,251,248,0.62); line-height:1.45;"><span style="color:var(--mint); font-weight:600;" class="i18n" data-en="Rationale: ">Обоснование: </span><span class="i18n" data-en="Developing administrations do not always have access to GPU infrastructure, which slows AI deployment — WCO/partner support programs would level the playing field.">развивающиеся администрации не всегда имеют доступ к GPU-инфраструктуре, что тормозит внедрение ИИ; поддержка WCO/партнёров выравняет условия внедрения.</span></div>
+      </div>
+    </div>
+
+    <div class="glass float-card" style="grid-column:1 / -1; padding:20px 24px; display:flex; gap:16px; align-items:flex-start;">
+      <svg viewBox="0 0 56 56" width="52" height="52" fill="none" style="flex-shrink:0;">
+        <circle cx="28" cy="22" r="12" stroke="var(--turquoise)" stroke-width="2"/>
+        <path d="M28 15 L31 20 L36.5 20.8 L32.5 24.5 L33.5 30 L28 27.2 L22.5 30 L23.5 24.5 L19.5 20.8 L25 20 Z" stroke="var(--turquoise)" stroke-width="1.6" stroke-linejoin="round" fill="none"/>
+        <path d="M20 32 L17 46 L28 40.5 L39 46 L36 32" stroke="var(--turquoise)" stroke-width="2" fill="none" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <div class="i18n" data-en="A WCO accreditation for experts in non-intrusive inspection and intelligent image analysis" style="font-family:var(--font-display); font-weight:700; font-size:1.05rem; margin-bottom:6px;">Аккредитация эксперта ВТамО по неинтрузивному контролю и интеллектуальному анализу снимков</div>
+        <div style="font-size:0.88rem; color:rgba(245,251,248,0.62); line-height:1.45;"><span style="color:var(--mint); font-weight:600;" class="i18n" data-en="Rationale: ">Обоснование: </span><span class="i18n" data-en="NII and AI-based image analysis are becoming a distinct professional field, yet no dedicated WCO expert accreditation currently exists for it — establishing one would formalize expertise, support knowledge transfer, and strengthen capacity-building across administrations.">неинтрузивный контроль и ИИ-анализ снимков становятся самостоятельной профессиональной областью, однако выделенной аккредитации эксперта ВТамО по этому направлению пока не существует; её создание закрепит экспертизу, поддержит передачу знаний и укрепит потенциал администраций.</span></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- SLIDE 11 : FINAL -->
+<section class="slide" data-index="10">
+  <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center;">
+    <div class="reveal r1 breathe" style="width:300px;height:300px;border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid var(--glass-border); background:var(--glass); margin-bottom:36px; overflow:hidden;">
+      <img src="gtk_image2.png" alt="Герб ТК" class="emblem-glow" style="width:70%;height:70%;object-fit:contain;">
+    </div>
+    <h1 class="reveal r2 i18n" data-en="Thank you for your attention" style="font-family:var(--font-display); font-weight:800; font-size:clamp(2.4rem,4.5vw,4rem);">Спасибо за внимание</h1>
+    <p class="reveal r3 i18n" data-en="Questions?" style="font-size:1.5rem; color:var(--mint); margin-top:14px; letter-spacing:0.02em;">Вопросы?</p>
+  </div>
+  <div class="reveal r4" style="position:absolute; right:7vw; bottom:14vh; text-align:right; font-size:1rem; color:rgba(245,251,248,0.65); line-height:1.7;">
+    <div>i.gazizov@customs.uz</div>
+    <div><span class="i18n" data-en="Mob.:">Моб. тел.:</span> +998 99 079 04 40</div>
+  </div>
+</section>
+
+</div>
+
+<!-- LIGHTBOX (image viewer, lives at document root so its z-index compares correctly against fixed nav) -->
+<div id="lightbox" class="lightbox-overlay">
+  <div class="lightbox-glass">
+    <div class="lightbox-close" onclick="closeLightbox()">✕</div>
+    <img id="lightbox-img" src="" alt="">
+    <div id="lightbox-caption" style="display:none; font-family:var(--font-display); font-weight:700; font-size:1.05rem; color:var(--mint); text-align:center; letter-spacing:0.02em;"></div>
+    <div class="lightbox-nav">
+      <div class="arrow-btn" onclick="lightboxStep(-1)">‹</div>
+      <div class="lightbox-counter" id="lightbox-counter">1 / 9</div>
+      <div class="arrow-btn" onclick="lightboxStep(1)">›</div>
+    </div>
+  </div>
+</div>
+
+<div class="brand-mark i18n" data-en="Customs Committee of Uzbekistan">ТК Республики Узбекистан</div>
+
+<div class="lang-toggle">
+  <div class="lang-btn active" id="langRu" onclick="setLang('ru')">RU</div>
+  <div class="lang-btn" id="langEn" onclick="setLang('en')">EN</div>
+</div>
+
+<div class="nav-dots" id="dots"></div>
+<div class="arrows">
+  <div class="arrow-btn" id="prevBtn">‹</div>
+  <div class="slide-counter" id="counter">1 / 11</div>
+  <div class="arrow-btn" id="nextBtn">›</div>
+</div>
+
+<script>
+const slides = Array.from(document.querySelectorAll('.slide'));
+const dotsWrap = document.getElementById('dots');
+const counter = document.getElementById('counter');
+let current = 0;
+
+slides.forEach((s,i)=>{
+  const d = document.createElement('div');
+  d.className = 'dot' + (i===0?' active':'');
+  d.addEventListener('click', ()=>goTo(i));
+  dotsWrap.appendChild(d);
+});
+const dots = Array.from(dotsWrap.children);
+
+function goTo(i){
+  if(i<0 || i>=slides.length) return;
+  slides[current].classList.remove('active');
+  dots[current].classList.remove('active');
+  current = i;
+  slides[current].classList.add('active');
+  dots[current].classList.add('active');
+  counter.textContent = (current+1)+' / '+slides.length;
+}
+document.getElementById('nextBtn').addEventListener('click', ()=>goTo(current+1));
+document.getElementById('prevBtn').addEventListener('click', ()=>goTo(current-1));
+window.addEventListener('keydown', e=>{
+  if(lightboxOpen){
+    if(e.key==='ArrowRight') lightboxStep(1);
+    if(e.key==='ArrowLeft') lightboxStep(-1);
+    if(e.key==='Escape') closeLightbox();
+    return;
+  }
+  if(e.key==='ArrowRight' || e.key===' ') goTo(current+1);
+  if(e.key==='ArrowLeft') goTo(current-1);
+});
+slides[0].classList.add('active');
+
+/* ---------------- language toggle ---------------- */
+let currentLang = 'ru';
+function setLang(lang){
+  if(lang === currentLang) return;
+  currentLang = lang;
+  document.querySelectorAll('.i18n').forEach(el=>{
+    if(!el.dataset.ru) el.dataset.ru = el.textContent;
+    el.textContent = lang === 'en' ? el.dataset.en : el.dataset.ru;
+  });
+  document.getElementById('langRu').classList.toggle('active', lang==='ru');
+  document.getElementById('langEn').classList.toggle('active', lang==='en');
+  document.documentElement.lang = lang;
+  if(lightboxOpen && lightboxCaptionEl.dataset.ru){
+    lightboxCaptionEl.textContent = lang === 'en' ? lightboxCaptionEl.dataset.en : lightboxCaptionEl.dataset.ru;
+  }
+}
+
+/* ---------------- lightbox (image gallery) ---------------- */
+const lightboxImages = ['1.png','2.png','3.png','4.png','5.png','6.png','7.png','8.png','9.png','10.png'];
+const baggageImages = ['bag0.png','bag1.png','bag2.png','bag3.png','bag4.png','bag5.png','bag6.png','bag7.png'];
+const zbxImages = ['ZBX.jpg'];
+const fivePlusOneImages = ['5+1.png'];
+const lightboxCaptions = {
+  '2.png': {ru:'01 · Определение типа вагона', en:'01 · Wagon type identification'},
+  '3.png': {ru:'02 · Сегментация конструкции', en:'02 · Structure segmentation'},
+  '4.png': {ru:'03 · Поиск скрытых аномалий', en:'03 · Hidden anomaly detection'},
+  '5.png': {ru:'04 · Обнаружение и классификация грузов', en:'04 · Cargo detection and classification'},
+  '7.png': {ru:'05 · Оценка степени заполненности вагона', en:'05 · Wagon load-status assessment'},
+  '8.png': {ru:'06 · Сравнение изображений груза поста въезда и выезда', en:'06 · Entry/exit cargo image comparison'}
+};
+const lightboxEl = document.getElementById('lightbox');
+const lightboxImgEl = document.getElementById('lightbox-img');
+const lightboxCounterEl = document.getElementById('lightbox-counter');
+const lightboxCaptionEl = document.getElementById('lightbox-caption');
+let activeImages = lightboxImages;
+let lightboxIndex = 0;
+let lightboxOpen = false;
+
+function openLightbox(i, arr){
+  activeImages = arr || lightboxImages;
+  lightboxIndex = i;
+  updateLightbox();
+  lightboxEl.classList.add('open');
+  lightboxOpen = true;
+}
+function closeLightbox(){
+  lightboxEl.classList.remove('open');
+  lightboxOpen = false;
+}
+function lightboxStep(dir){
+  lightboxIndex = (lightboxIndex + dir + activeImages.length) % activeImages.length;
+  updateLightbox();
+}
+function updateLightbox(){
+  const src = activeImages[lightboxIndex];
+  lightboxImgEl.src = src;
+  lightboxImgEl.alt = 'Изображение ' + (lightboxIndex+1);
+  lightboxCounterEl.textContent = (lightboxIndex+1) + ' / ' + activeImages.length;
+  const cap = lightboxCaptions[src];
+  if(cap){
+    lightboxCaptionEl.style.display = 'block';
+    lightboxCaptionEl.textContent = currentLang === 'en' ? cap.en : cap.ru;
+    lightboxCaptionEl.dataset.ru = cap.ru;
+    lightboxCaptionEl.dataset.en = cap.en;
+  } else {
+    lightboxCaptionEl.style.display = 'none';
+  }
+}
+lightboxEl.addEventListener('click', e=>{
+  if(e.target === lightboxEl) closeLightbox();
+});
+
+/* ---------------- particle field ---------------- */
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let W,H;
+function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const N = reduceMotion ? 0 : 30;
+const particles = Array.from({length:N}, ()=>({
+  x:Math.random()*W, y:Math.random()*H,
+  vx:(Math.random()-0.5)*0.32, vy:(Math.random()-0.5)*0.32,
+  r:Math.random()*2.8+1.4, a:Math.random()*0.4+0.15
+}));
+
+function tick(){
+  ctx.clearRect(0,0,W,H);
+  particles.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<0)p.x=W; if(p.x>W)p.x=0;
+    if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle = 'rgba(149,213,178,'+p.a+')';
+    ctx.fill();
+  });
+  for(let i=0;i<particles.length;i++){
+    for(let j=i+1;j<particles.length;j++){
+      const dx=particles[i].x-particles[j].x, dy=particles[i].y-particles[j].y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<170){
+        ctx.strokeStyle='rgba(79,209,197,'+(0.09*(1-dist/170))+')';
+        ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(particles[i].x,particles[i].y); ctx.lineTo(particles[j].x,particles[j].y); ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>

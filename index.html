@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ИИ в национальной системе управления рисками таможенных органов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --bg-0:#081C15;
+  --bg-1:#0B2D22;
+  --bg-2:#12372A;
+  --bg-3:#1B4332;
+  --white:#F5FBF8;
+  --mint:#95D5B2;
+  --emerald:#40916C;
+  --emerald-deep:#2D6A4F;
+  --turquoise:#4FD1C5;
+  --line:rgba(149,213,178,0.16);
+  --glass:rgba(245,251,248,0.045);
+  --glass-border:rgba(149,213,178,0.14);
+  --font-display:'Manrope',sans-serif;
+  --font-body:'Inter',sans-serif;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{
+  width:100%;height:100%;
+  background:var(--bg-0);
+  color:var(--white);
+  font-family:var(--font-body);
+  overflow:hidden;
+  font-size:19px;
+}
+
+/* ---------- background canvas layers ---------- */
+#bg-canvas{
+  position:fixed; inset:0; z-index:0;
+  background:
+    radial-gradient(ellipse at 20% 15%, rgba(64,145,108,0.16), transparent 55%),
+    radial-gradient(ellipse at 85% 80%, rgba(79,209,197,0.10), transparent 55%),
+    linear-gradient(160deg,var(--bg-0) 0%, var(--bg-1) 45%, var(--bg-0) 100%);
+}
+.grid-layer{
+  position:fixed; inset:-5% ;
+  z-index:1;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:64px 64px;
+  opacity:0.35;
+  animation:gridDrift 60s linear infinite;
+  pointer-events:none;
+}
+@keyframes gridDrift{
+  0%{transform:translate(0,0);}
+  100%{transform:translate(-64px,-64px);}
+}
+canvas#particles{position:fixed; inset:0; z-index:1; pointer-events:none;}
+
+/* ---------- deck ---------- */
+.deck{
+  position:relative; z-index:2;
+  width:100vw; height:100vh;
+}
+.slide{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:6vh 7vw 13vh 7vw;
+  opacity:0; visibility:hidden;
+  transform:scale(0.985);
+  filter:blur(6px);
+  transition:opacity .7s ease, transform .7s ease, filter .7s ease;
+}
+.slide.active{
+  opacity:1; visibility:visible; transform:none; filter:none;
+}
+.slide .reveal{ opacity:0; transform:translateY(16px); transition:opacity .6s ease, transform .6s ease; }
+.slide.active .reveal{ opacity:1; transform:translateY(0); }
+.slide.active .r1{transition-delay:.08s;}
+.slide.active .r2{transition-delay:.18s;}
+.slide.active .r3{transition-delay:.28s;}
+.slide.active .r4{transition-delay:.38s;}
+.slide.active .r5{transition-delay:.48s;}
+.slide.active .r6{transition-delay:.58s;}
+.slide.active .r7{transition-delay:.68s;}
+.slide.active .r8{transition-delay:.78s;}
+
+.eyebrow{
+  font-family:var(--font-body); font-size:0.92rem; letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--mint); opacity:0.75; margin-bottom:14px; font-weight:500;
+}
+h1.headline{
+  font-family:var(--font-display); font-weight:800;
+  font-size:clamp(2.2rem, 3.6vw, 3.3rem);
+  line-height:1.18; color:var(--white); max-width:900px;
+  letter-spacing:-0.01em;
+}
+.subhead{
+  font-family:var(--font-body); font-weight:400; font-size:1.22rem;
+  color:rgba(245,251,248,0.72); margin-top:16px; max-width:640px; line-height:1.6;
+}
+
+/* glass card */
+.glass{
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:18px;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  transition:transform .35s ease, box-shadow .35s ease, background .35s ease;
+}
+.glass:hover{
+  transform:translateY(-3px) scale(1.02);
+  box-shadow:0 0 0 1px rgba(149,213,178,0.25), 0 18px 40px -14px rgba(0,0,0,0.55), 0 0 32px rgba(79,209,197,0.14);
+  background:rgba(245,251,248,0.07);
+}
+.breathe{ animation:breathe 6s ease-in-out infinite; }
+@keyframes breathe{
+  0%,100%{ box-shadow:0 0 0 1px rgba(149,213,178,0.10), 0 0 24px rgba(64,145,108,0.10); }
+  50%{ box-shadow:0 0 0 1px rgba(149,213,178,0.22), 0 0 40px rgba(79,209,197,0.20); }
+}
+
+/* nav */
+.nav-dots{
+  position:fixed; right:34px; top:50%; transform:translateY(-50%);
+  z-index:10; display:flex; flex-direction:column; gap:14px;
+}
+.dot{
+  width:8px; height:8px; border-radius:50%;
+  background:rgba(245,251,248,0.25);
+  border:1px solid rgba(149,213,178,0.3);
+  cursor:pointer; transition:all .3s ease;
+}
+.dot.active{ background:var(--turquoise); box-shadow:0 0 10px rgba(79,209,197,0.7); transform:scale(1.35);}
+.arrows{
+  position:fixed; bottom:30px; left:34px;
+  z-index:10; display:flex; gap:18px; align-items:center;
+}
+.arrow-btn{
+  width:42px; height:42px; border-radius:50%;
+  background:var(--glass); border:1px solid var(--glass-border);
+  color:var(--mint); display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all .25s ease; backdrop-filter:blur(10px);
+}
+.arrow-btn:hover{ background:rgba(79,209,197,0.14); transform:scale(1.08); box-shadow:0 0 18px rgba(79,209,197,0.3);}
+.slide-counter{ font-size:0.95rem; color:rgba(245,251,248,0.5); letter-spacing:0.08em; min-width:52px; text-align:center;}
+
+/* utility */
+.row{display:flex; gap:4vw; align-items:center; width:100%;}
+.col{flex:1;}
+.tag{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 14px; border-radius:999px;
+  border:1px solid var(--glass-border); background:var(--glass);
+  font-size:0.92rem; color:var(--mint); letter-spacing:0.04em;
+}
+.decree-box{
+  border-left:2px solid var(--turquoise);
+  padding:12px 20px; margin:22px 0; background:rgba(79,209,197,0.05);
+  border-radius:0 10px 10px 0;
+}
+.decree-box b{color:var(--white); font-weight:600;}
+.big-stat{
+  font-family:var(--font-display); font-weight:800; font-size:6rem;
+  background:linear-gradient(135deg,var(--white),var(--turquoise));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  line-height:1;
+}
+
+/* connector svg lines */
+svg.connectors line, svg.connectors path{
+  stroke:rgba(149,213,178,0.35); stroke-width:1.2; fill:none;
+}
+.pulse-dot{ animation:travel 4s linear infinite; }
+
+/* footer brand mark */
+.brand-mark{
+  position:fixed; left:7vw; bottom:82px; z-index:6;
+  font-family:var(--font-display); font-size:0.72rem; letter-spacing:0.18em;
+  color:rgba(245,251,248,0.35); text-transform:uppercase;
+}
+
+/* ---------- lightbox (slide 3 image viewer) ---------- */
+.lightbox-overlay{
+  position:fixed; inset:0; z-index:100;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(4,14,10,0.72);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  opacity:0; visibility:hidden;
+  transition:opacity .35s ease, visibility .35s ease;
+}
+.lightbox-overlay.open{ opacity:1; visibility:visible; }
+.lightbox-glass{
+  position:relative;
+  background:rgba(245,251,248,0.06);
+  border:1px solid var(--glass-border);
+  border-radius:22px;
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  box-shadow:0 30px 80px -20px rgba(0,0,0,0.6), 0 0 40px rgba(79,209,197,0.14);
+  padding:28px;
+  width:97vw;
+  height:97vh;
+  max-width:none;
+  max-height:none;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+  transform:scale(0.94); transition:transform .35s ease;
+}
+.lightbox-overlay.open .lightbox-glass{ transform:scale(1); }
+#lightbox-img{
+  max-width:100%; max-height:90vh; width:auto; height:auto; object-fit:contain;
+  border-radius:12px;
+  box-shadow:0 0 30px rgba(79,209,197,0.12);
+}
+.lightbox-close{
+  position:absolute; top:14px; right:18px;
+  width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--glass); border:1px solid var(--glass-border);
+  color:var(--white); cursor:pointer; font-size:0.95rem;
+  transition:all .25s ease;
+}
+.lightbox-close:hover{ background:rgba(79,209,197,0.18); transform:rotate(90deg); }
+.lightbox-nav{ display:flex; align-items:center; gap:20px; }
+.lightbox-counter{ font-size:0.82rem; color:rgba(245,251,248,0.6); letter-spacing:0.06em; min-width:48px; text-align:center;}
+
+/* AI network diagram interactivity */
+.ai-diagram .ai-node{
+  cursor:pointer;
+  transform-box:fill-box; transform-origin:center;
+  transition:transform .3s ease;
+}
+.ai-diagram .ai-node circle{ transition:fill .3s ease, r .3s ease, filter .3s ease; }
+.ai-diagram .ai-node text{ transition:fill .3s ease; }
+.ai-diagram .ai-node:hover{ transform:scale(1.22); }
+.ai-diagram .ai-node:hover circle{ fill:#4FD1C5; filter:drop-shadow(0 0 6px rgba(79,209,197,0.8)); }
+.ai-diagram .ai-node:hover text{ fill:#F5FBF8; }
+
+/* gentle floating + glow animation for content cards across slides 1-5 */
+/* movement uses only transform (GPU-composited, smooth); glow is a separate
+   pseudo-layer animating opacity only — animating box-shadow directly every
+   frame is what caused the stutter before. */
+@keyframes floatCard{
+  0%,100%{ transform:translateY(0); }
+  50%{ transform:translateY(-6px); }
+}
+@keyframes floatGlow{
+  0%,100%{ opacity:0; }
+  50%{ opacity:1; }
+}
+.float-card{
+  position:relative;
+  animation:floatCard 7s ease-in-out infinite;
+  will-change:transform;
+  backface-visibility:hidden;
+}
+.float-card::after{
+  content:"";
+  position:absolute; inset:0;
+  border-radius:inherit;
+  box-shadow:0 0 0 1px rgba(149,213,178,0.22), 0 0 24px rgba(79,209,197,0.18);
+  opacity:0;
+  animation:floatGlow 7s ease-in-out infinite;
+  pointer-events:none;
+}
+.float-card:hover{ animation-play-state:paused; }
+.float-card:hover::after{ animation-play-state:paused; }
+.float-card:nth-of-type(1),.float-card:nth-of-type(1)::after{ animation-delay:0s; }
+.float-card:nth-of-type(2),.float-card:nth-of-type(2)::after{ animation-delay:0.7s; }
+.float-card:nth-of-type(3),.float-card:nth-of-type(3)::after{ animation-delay:1.4s; }
+.float-card:nth-of-type(4),.float-card:nth-of-type(4)::after{ animation-delay:2.1s; }
+.float-card:nth-of-type(5),.float-card:nth-of-type(5)::after{ animation-delay:2.8s; }
+
+/* gentle glow pulse for emblem images */
+@keyframes emblemGlow{
+  0%,100%{ filter:drop-shadow(0 0 0px rgba(79,209,197,0)); }
+  50%{ filter:drop-shadow(0 0 16px rgba(79,209,197,0.4)); }
+}
+.emblem-glow{ animation:emblemGlow 6s ease-in-out infinite; }
+
+.tag{ transition:all .3s ease; }
+.tag:hover{ background:rgba(79,209,197,0.16); border-color:rgba(79,209,197,0.4); transform:translateY(-2px); box-shadow:0 0 14px rgba(79,209,197,0.25); }
+
+/* language toggle */
+.lang-toggle{
+  position:fixed; top:28px; right:34px; z-index:10;
+  display:flex; gap:4px; padding:4px;
+  background:var(--glass); border:1px solid var(--glass-border); border-radius:999px;
+  backdrop-filter:blur(10px);
+}
+.lang-btn{
+  padding:6px 14px; border-radius:999px; cursor:pointer;
+  font-size:0.78rem; letter-spacing:0.04em; color:rgba(245,251,248,0.55);
+  transition:all .25s ease; font-family:var(--font-display); font-weight:700;
+}
+.lang-btn.active{ background:rgba(79,209,197,0.18); color:var(--white); box-shadow:0 0 12px rgba(79,209,197,0.25); }
+.lang-btn:hover{ color:var(--white); }
+
+@media (max-width: 860px){
+  .row{flex-direction:column;}
+  .nav-dots{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div id="bg-canvas"></div>
+<div class="grid-layer"></div>
+<canvas id="particles"></canvas>
+
+<div class="deck" id="deck">
+
+<!-- SLIDE 1 : TITLE -->
+<section class="slide" data-index="0">
+  <div class="row" style="align-items:center;">
+    <div class="col reveal r1" style="max-width:70%;">
+      <div class="eyebrow reveal r2 i18n" data-en="Customs Committee of the Republic of Uzbekistan">Таможенный комитет Республики Узбекистан</div>
+      <h1 class="headline reveal r3 i18n" data-en="Artificial Intelligence in the National Customs Risk Management System">Искусственный интеллект в национальной системе управления рисками таможенных органов</h1>
+      <p class="subhead reveal r4 i18n" data-en="Using AI for X-ray image analysis of railway transport">Использование AI при анализе рентгеновских изображений железнодорожного транспорта</p>
+    </div>
+     <img src="gtk_image2.png" alt="Герб ТК" class="emblem-glow" style="width:50%;height:50%;object-fit:contain;">
+  </div>
+  <div class="reveal r6" style="position:absolute; right:7vw; bottom:14vh; text-align:right; max-width:360px;">
+    <div class="i18n" data-en="Ilyas Ilmirovich Gazizov" style="font-family:var(--font-display); font-weight:700; font-size:1.2rem;">Ильяс Ильмирович Газизов</div>
+    <div style="color:rgba(245,251,248,0.6); font-size:1.05rem; margin-top:4px; line-height:1.5;">
+      <span class="i18n" data-en="Chief Inspector">Главный инспектор</span><br>
+      <span class="i18n" data-en="Targeting and Risk Monitoring Department">Управление таргетирования </span><br>
+      <span class="i18n" >и мониторинга рисков</span><br>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2 : ROLE OF AI -->
+<section class="slide" data-index="1" style="justify-content:flex-start; padding-top:8vh;">
+  <div class="eyebrow reveal r1 i18n" data-en="Strategic Context">Стратегический контекст</div>
+  <h1 class="headline reveal r2 i18n" data-en="The Role of Artificial Intelligence in Risk Management" style="font-size:clamp(1.9rem,2.8vw,2.6rem);">Роль искусственного интеллекта в системе управления рисками</h1>
+
+  <div class="row" style="margin-top:20px; align-items:flex-start;">
+    <div class="col reveal r3" style="max-width:46%;">
+      <p class="i18n" data-en="The application of artificial intelligence technologies in customs authorities is one of the most dynamically developing areas of digital transformation, improving control efficiency, decision objectivity, and reducing corruption risks." style="color:rgba(245,251,248,0.78); line-height:1.5; font-size:1.15rem; margin-bottom:4px;">
+        Применение технологий искусственного интеллекта в таможенных органах — одно из наиболее динамично развивающихся направлений цифровой трансформации, повышающее эффективность контроля, объективность решений и снижающее коррупционные риски.
+      </p>
+      <div class="decree-box float-card" style="margin:14px 0;">
+        <b class="i18n" data-en="Decree of the President of the Republic of Uzbekistan No. PD-57">Указ Президента Республики Узбекистан № УП-57</b><br>
+        <span class="i18n" data-en="dated March 25, 2025">от 25 марта 2025 года</span>
+      </div>
+      <p class="i18n" data-en="The main goal is to double the efficiency of the risk management system by 2030 through the application of artificial intelligence elements." style="color:rgba(245,251,248,0.6); font-size:1.05rem; line-height:1.4; margin-top:10px;">Основная цель — к 2030 году повысить эффективность системы управления рисками за счёт применения элементов искусственного интеллекта.</p>
+
+      <div class="glass float-card" style="margin-top:16px; padding:16px 24px; display:inline-flex; align-items:center; gap:16px;">
+        <div class="big-stat">2×</div>
+        <div class="i18n" data-en="growth in risk management system efficiency by 2030" style="font-size:1rem; color:rgba(245,251,248,0.65); max-width:230px;">рост эффективности системы управления рисками к 2030 году</div>
+      </div>
+    </div>
+
+    <div class="col reveal r6" style="max-width:50%;">
+      <div class="i18n" data-en="5 priority AI modules" style="font-size:0.8rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--mint); margin-bottom:6px;">5 приоритетных модулей ИИ</div>
+      <div class="i18n" data-en="Committee Order No. 85 dated 17.09.2025" style="font-size:0.85rem; color:rgba(245,251,248,0.5); margin-bottom:18px;">Приказ Комитета № 85 от 17.09.2025</div>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;">
+          <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">01</span>
+          <span class="i18n" data-en="AI module for TN VED (HS) code identification">Модуль ИИ по определению кода ТН ВЭД</span>
+        </div>
+        <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;">
+          <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">02</span>
+          <span class="i18n" data-en="AI module for X-ray image analysis">Модуль анализа рентген-изображений с помощью ИИ</span>
+        </div>
+        <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;">
+          <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">03</span>
+          <span class="i18n" data-en="AI module for document analysis (OCR)">Модуль ИИ по анализу документов (OCR)</span>
+        </div>
+        <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;">
+          <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">04</span>
+          <span class="i18n" data-en="AI module — Customs Advisor chatbot">Модуль ИИ чат-бота «Таможенный консультант»</span>
+        </div>
+        <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;">
+          <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">05</span>
+          <span class="i18n" data-en="Customs value module">Модуль таможенной стоимости</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3 : XRAY PROCESS -->
+<section class="slide" data-index="2">
+  <div class="eyebrow reveal r1 i18n" data-en="Intelligent X-ray Image Analysis System">Интеллектуальная система анализа рентгеновских изображений </div>
+  <h1 class="headline reveal r2" style="font-size:clamp(1.9rem,2.8vw,2.6rem);">X-Vision AI</h1>
+
+  <div class="row" style="margin-top:34px; align-items:center;">
+    <div class="col reveal r3" style="max-width:44%; display:flex; flex-direction:column; gap:14px;">
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center; cursor:pointer;" onclick="openLightbox(1)">
+        <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">01</span>
+        <span class="i18n" data-en="Wagon type identification">Определение типа вагона</span>
+      </div>
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center; cursor:pointer;" onclick="openLightbox(2)">
+        <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">02</span>
+        <span class="i18n" data-en="Structure segmentation">Сегментация конструкции</span>
+      </div>
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center; cursor:pointer;" onclick="openLightbox(3)">
+        <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">03</span>
+        <span class="i18n" data-en="Hidden anomaly detection">Поиск скрытых аномалий</span>
+      </div>
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center; cursor:pointer;" onclick="openLightbox(4)">
+        <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">04</span>
+        <span class="i18n" data-en="Cargo detection and classification">Обнаружение и классификация грузов</span>
+      </div>
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center; cursor:pointer;" onclick="openLightbox(6)">
+        <span style="font-family:var(--font-display); color:var(--turquoise); font-weight:800;">05</span>
+        <span class="i18n" data-en="Wagon load-status assessment">Оценка степени заполненности вагона</span>
+      </div>
+    </div>
+
+    <div class="col reveal r5" style="max-width:60%; display:flex; flex-direction:column; gap:12px;">
+      <div class="glass" style="padding:8px; overflow:hidden; height: 450px; cursor:pointer;" onclick="openLightbox(0)">
+        <img src="1.png" alt="Изображение 1" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+        <div class="glass" style="padding:6px; overflow:hidden; height:78px; cursor:pointer;" onclick="openLightbox(1)"><img src="2.png" alt="Изображение 2" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+        <div class="glass" style="padding:6px; overflow:hidden; height:78px; cursor:pointer;" onclick="openLightbox(2)"><img src="3.png" alt="Изображение 3" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+        <div class="glass" style="padding:6px; overflow:hidden; height:78px; cursor:pointer;" onclick="openLightbox(3)"><img src="4.png" alt="Изображение 4" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+        <div class="glass" style="padding:6px; overflow:hidden; height:78px; cursor:pointer;" onclick="openLightbox(4)"><img src="5.png" alt="Изображение 5" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+        <div class="glass" style="padding:6px; overflow:hidden; height:78px; cursor:pointer;" onclick="openLightbox(5)"><img src="6.png" alt="Изображение 6" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+        <div class="glass" style="padding:6px; overflow:hidden; height:78px; cursor:pointer;" onclick="openLightbox(6)"><img src="7.png" alt="Изображение 7" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+        <div class="glass" style="padding:6px; overflow:hidden; height:78px; cursor:pointer;" onclick="openLightbox(7)"><img src="8.png" alt="Изображение 8" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+        <div class="glass" style="padding:6px; overflow:hidden; height:78px; cursor:pointer;" onclick="openLightbox(8)"><img src="9.png" alt="Изображение 9" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5 : ROADMAP -->
+<section class="slide" data-index="3">
+  <div class="eyebrow reveal r1 i18n" data-en="Roadmap">Дорожная карта</div>
+  <h1 class="headline reveal r2 i18n" data-en="Priority Areas for Project Development" style="font-size:clamp(1.9rem,2.8vw,2.6rem);">Приоритетные направления развития проекта</h1>
+
+  <div class="row" style="margin-top:32px; align-items:flex-start;">
+    <div class="col reveal r3" style="max-width:52%; display:flex; flex-direction:column; gap:12px;">
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;"><span style="color:var(--turquoise); font-family:var(--font-display); font-weight:800;">1</span><span class="i18n" data-en="Integration with the national risk management system">Интеграция с национальной системой управления рисками</span></div>
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;"><span style="color:var(--turquoise); font-family:var(--font-display); font-weight:800;">2</span><span class="i18n" data-en="Automatic detection of prohibited goods">Автоматическое выявление запрещённых товаров</span></div>
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;"><span style="color:var(--turquoise); font-family:var(--font-display); font-weight:800;">3</span><span class="i18n" data-en="Cross-border comparison of transit images">Сравнение транзитных изображений между странами</span></div>
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;"><span style="color:var(--turquoise); font-family:var(--font-display); font-weight:800;">4</span><span class="i18n" data-en="Use of large language models (LLM)">Использование больших языковых моделей (LLM)</span></div>
+      <div class="glass float-card" style="padding:14px 20px; display:flex; gap:14px; align-items:center;"><span style="color:var(--turquoise); font-family:var(--font-display); font-weight:800;">5</span><span class="i18n" data-en="Building a unified intelligent X-ray image analysis platform">Создание единой интеллектуальной платформы анализа рентгеновских изображений</span></div>
+    </div>
+
+    <div class="col reveal r4" style="display:flex; justify-content:center;">
+      <div class="glass" style="padding:8px; overflow:hidden; width:800px; height:500x; cursor:pointer;" onclick="openLightbox(9)">
+        <img src="10.png" alt="Изображение 10" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal r5" style="margin-top:30px; display:flex; gap:12px; flex-wrap:wrap;">
+    <span class="i18n" data-en="The future of intelligent customs control:" style="color:rgba(245,251,248,0.55); font-size:1.05rem; margin-right:8px;">Будущее интеллектуального таможенного контроля:</span>
+    <span class="tag">AI</span><span class="tag">Big Data</span><span class="tag">Digital Customs</span><span class="tag">Risk Management</span>
+  </div>
+</section>
+
+<!-- SLIDE 6 : FINAL -->
+<section class="slide" data-index="4">
+  <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center;">
+    <div class="reveal r1 breathe" style="width:300px;height:300px;border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid var(--glass-border); background:var(--glass); margin-bottom:36px; overflow:hidden;">
+      <img src="gtk_image2.png" alt="Герб ТК" class="emblem-glow" style="width:70%;height:70%;object-fit:contain;">
+    </div>
+    <h1 class="reveal r2 i18n" data-en="Thank you for your attention" style="font-family:var(--font-display); font-weight:800; font-size:clamp(2.4rem,4.5vw,4rem);">Спасибо за внимание</h1>
+    <p class="reveal r3 i18n" data-en="Questions?" style="font-size:1.5rem; color:var(--mint); margin-top:14px; letter-spacing:0.02em;">Вопросы?</p>
+  </div>
+  <div class="reveal r4" style="position:absolute; right:7vw; bottom:14vh; text-align:right; font-size:1rem; color:rgba(245,251,248,0.65); line-height:1.7;">
+    <div>i.gazizov@customs.uz</div>
+    <div><span class="i18n" data-en="Mob.:">Моб. тел.:</span> +998 99 079 04 40</div>
+  </div>
+</section>
+
+</div>
+
+<!-- LIGHTBOX (image viewer, lives at document root so its z-index compares correctly against fixed nav) -->
+<div id="lightbox" class="lightbox-overlay">
+  <div class="lightbox-glass">
+    <div class="lightbox-close" onclick="closeLightbox()">✕</div>
+    <img id="lightbox-img" src="" alt="">
+    <div class="lightbox-nav">
+      <div class="arrow-btn" onclick="lightboxStep(-1)">‹</div>
+      <div class="lightbox-counter" id="lightbox-counter">1 / 9</div>
+      <div class="arrow-btn" onclick="lightboxStep(1)">›</div>
+    </div>
+  </div>
+</div>
+
+<div class="brand-mark i18n" data-en="X-Vision AI · Customs Committee of Uzbekistan">X-Vision AI &nbsp;·&nbsp; ТК Республики Узбекистан</div>
+
+<div class="lang-toggle">
+  <div class="lang-btn active" id="langRu" onclick="setLang('ru')">RU</div>
+  <div class="lang-btn" id="langEn" onclick="setLang('en')">EN</div>
+</div>
+
+<div class="nav-dots" id="dots"></div>
+<div class="arrows">
+  <div class="arrow-btn" id="prevBtn">‹</div>
+  <div class="slide-counter" id="counter">1 / 5</div>
+  <div class="arrow-btn" id="nextBtn">›</div>
+</div>
+
+<script>
+const slides = Array.from(document.querySelectorAll('.slide'));
+const dotsWrap = document.getElementById('dots');
+const counter = document.getElementById('counter');
+let current = 0;
+
+slides.forEach((s,i)=>{
+  const d = document.createElement('div');
+  d.className = 'dot' + (i===0?' active':'');
+  d.addEventListener('click', ()=>goTo(i));
+  dotsWrap.appendChild(d);
+});
+const dots = Array.from(dotsWrap.children);
+
+function goTo(i){
+  if(i<0 || i>=slides.length) return;
+  slides[current].classList.remove('active');
+  dots[current].classList.remove('active');
+  current = i;
+  slides[current].classList.add('active');
+  dots[current].classList.add('active');
+  counter.textContent = (current+1)+' / '+slides.length;
+}
+document.getElementById('nextBtn').addEventListener('click', ()=>goTo(current+1));
+document.getElementById('prevBtn').addEventListener('click', ()=>goTo(current-1));
+window.addEventListener('keydown', e=>{
+  if(lightboxOpen){
+    if(e.key==='ArrowRight') lightboxStep(1);
+    if(e.key==='ArrowLeft') lightboxStep(-1);
+    if(e.key==='Escape') closeLightbox();
+    return;
+  }
+  if(e.key==='ArrowRight' || e.key===' ') goTo(current+1);
+  if(e.key==='ArrowLeft') goTo(current-1);
+});
+slides[0].classList.add('active');
+
+/* ---------------- language toggle ---------------- */
+let currentLang = 'ru';
+function setLang(lang){
+  if(lang === currentLang) return;
+  currentLang = lang;
+  document.querySelectorAll('.i18n').forEach(el=>{
+    if(!el.dataset.ru) el.dataset.ru = el.textContent;
+    el.textContent = lang === 'en' ? el.dataset.en : el.dataset.ru;
+  });
+  document.getElementById('langRu').classList.toggle('active', lang==='ru');
+  document.getElementById('langEn').classList.toggle('active', lang==='en');
+  document.documentElement.lang = lang;
+}
+
+/* ---------------- lightbox (slide 3 gallery) ---------------- */
+const lightboxImages = ['1.png','2.png','3.png','4.png','5.png','6.png','7.png','8.png','9.png','10.png'];
+const lightboxEl = document.getElementById('lightbox');
+const lightboxImgEl = document.getElementById('lightbox-img');
+const lightboxCounterEl = document.getElementById('lightbox-counter');
+let lightboxIndex = 0;
+let lightboxOpen = false;
+
+function openLightbox(i){
+  lightboxIndex = i;
+  updateLightbox();
+  lightboxEl.classList.add('open');
+  lightboxOpen = true;
+}
+function closeLightbox(){
+  lightboxEl.classList.remove('open');
+  lightboxOpen = false;
+}
+function lightboxStep(dir){
+  lightboxIndex = (lightboxIndex + dir + lightboxImages.length) % lightboxImages.length;
+  updateLightbox();
+}
+function updateLightbox(){
+  lightboxImgEl.src = lightboxImages[lightboxIndex];
+  lightboxImgEl.alt = 'Изображение ' + (lightboxIndex+1);
+  lightboxCounterEl.textContent = (lightboxIndex+1) + ' / ' + lightboxImages.length;
+}
+lightboxEl.addEventListener('click', e=>{
+  if(e.target === lightboxEl) closeLightbox();
+});
+
+/* ---------------- particle field ---------------- */
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let W,H;
+function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const N = reduceMotion ? 0 : 30;
+const particles = Array.from({length:N}, ()=>({
+  x:Math.random()*W, y:Math.random()*H,
+  vx:(Math.random()-0.5)*0.32, vy:(Math.random()-0.5)*0.32,
+  r:Math.random()*2.8+1.4, a:Math.random()*0.4+0.15
+}));
+
+function tick(){
+  ctx.clearRect(0,0,W,H);
+  particles.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<0)p.x=W; if(p.x>W)p.x=0;
+    if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle = 'rgba(149,213,178,'+p.a+')';
+    ctx.fill();
+  });
+  for(let i=0;i<particles.length;i++){
+    for(let j=i+1;j<particles.length;j++){
+      const dx=particles[i].x-particles[j].x, dy=particles[i].y-particles[j].y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<170){
+        ctx.strokeStyle='rgba(79,209,197,'+(0.09*(1-dist/170))+')';
+        ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(particles[i].x,particles[i].y); ctx.lineTo(particles[j].x,particles[j].y); ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>
